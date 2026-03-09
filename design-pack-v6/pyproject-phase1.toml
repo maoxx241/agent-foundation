@@ -1,0 +1,22 @@
+[project]
+name = "agent-foundation-phase1"
+version = "0.1.0"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+  "fastapi==0.135.1",
+  "uvicorn[standard]==0.41.0",
+  "pydantic==2.12.5",
+  "pytest==8.4.1",
+  "httpx==0.28.1",
+  "pyyaml==6.0.3",
+  "pytest-asyncio==1.1.0",
+  "hypothesis==6.151.9",
+  "schemathesis==4.5.2",
+]
+
+[project.optional-dependencies]
+meta = ["sqlmodel==0.0.37"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

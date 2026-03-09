@@ -1,0 +1,17 @@
+.pytest_cache/
+.ruff_cache/
+.venv/
+.hypothesis/
+__pycache__/
+*.pyc
+*.sqlite3
+*.egg-info/
+build/
+node_modules/
+dist/
+.DS_Store
+tasks/
+kb/
+observability/
+reports/
+shadow_runs/

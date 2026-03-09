@@ -1,0 +1,87 @@
+{
+  "cases": [
+    {
+      "case_id": "shadow-happy",
+      "kind": "workflow",
+      "seed": {
+        "tasks": [
+          {
+            "task_id": "shadow-task-happy",
+            "project_id": "shadow-proj",
+            "title": "shadow happy path",
+            "goal": "exercise the full workflow"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "method": "PUT",
+          "path": "/v1/tasks/shadow-task-happy/artifacts/10_evidence/evidence-pack.json",
+          "json": {
+            "format": "json",
+            "content": {
+              "summary": "shadow evidence"
+            }
+          },
+          "expect_status": 200
+        },
+        {
+          "method": "PATCH",
+          "path": "/v1/tasks/shadow-task-happy/state",
+          "json": {
+            "target_state": "EVIDENCE_READY",
+            "changed_by": "shadow"
+          },
+          "expect_status": 200
+        }
+      ],
+      "expected": {
+        "final_states": {
+          "shadow-task-happy": "EVIDENCE_READY"
+        }
+      }
+    },
+    {
+      "case_id": "shadow-writeback",
+      "kind": "writeback",
+      "seed": {
+        "tasks": [
+          {
+            "task_id": "shadow-task-writeback",
+            "project_id": "shadow-proj",
+            "title": "shadow writeback",
+            "goal": "refine without promotion"
+          }
+        ],
+        "artifacts": [
+          {
+            "task_id": "shadow-task-writeback",
+            "stage": "80_writeback",
+            "name": "experience-packet.json",
+            "format": "json",
+            "content": {
+              "project_id": "shadow-proj",
+              "summary": "shadow writeback packet",
+              "validation_summary": "green",
+              "candidate_claims": [
+                "shadow promotion is reviewed manually"
+              ]
+            }
+          }
+        ]
+      },
+      "steps": [
+        {
+          "method": "POST",
+          "path": "/v1/kb/writeback/refine",
+          "json": {
+            "task_id": "shadow-task-writeback",
+            "persist": false
+          },
+          "expect_status": 200
+        }
+      ],
+      "expected": {}
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+openapi: 3.1.0
+info:
+  title: Artifact API
+  version: 0.2.0
+paths:
+  /v1/tasks:
+    post:
+      summary: Create a new task workspace and initialize task state
+  /v1/tasks/{task_id}:
+    get:
+      summary: Read task metadata and current state
+  /v1/tasks/{task_id}/state:
+    patch:
+      summary: Validate and update task state
+  /v1/tasks/{task_id}/bundle:
+    get:
+      summary: Return flattened task bundle summary
+  /v1/tasks/{task_id}/artifacts/{stage}/{name}:
+    put:
+      summary: Write or overwrite a single artifact file with validation when schema-backed
+    get:
+      summary: Read a single artifact file
+  /v1/tasks/{task_id}/artifacts:
+    get:
+      summary: List all artifacts grouped by stage
+  /v1/tasks/{task_id}/experience/finalize:
+    post:
+      summary: Validate state and finalize ExperiencePacket for writeback

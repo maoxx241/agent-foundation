@@ -1,0 +1,23 @@
+openapi: 3.1.0
+info:
+  title: Thin KB API
+  version: 0.2.0
+paths:
+  /v1/kb/claims/search:
+    post:
+      summary: Search claims by text, type filters, tags, scope, and status
+  /v1/kb/procedures/search:
+    post:
+      summary: Search procedures by text, tags, scope, and status
+  /v1/kb/cases/search:
+    post:
+      summary: Search cases by text, tags, env filters, scope, and status
+  /v1/kb/decisions/search:
+    post:
+      summary: Search decisions by text, tags, scope, and status
+  /v1/kb/object/{id}:
+    get:
+      summary: Return one canonical KB object from file source of truth
+  /v1/kb/related/{id}:
+    get:
+      summary: Return directly related object ids and metadata

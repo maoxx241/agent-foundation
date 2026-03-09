@@ -1,0 +1,47 @@
+[project]
+name = "agent-foundation"
+version = "0.1.0"
+description = "Memory + artifact + thin-KB foundation for OpenClaw-based engineering workflows"
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+  "fastapi==0.128.8",
+  "uvicorn==0.39.0",
+  "pydantic==2.12.5",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest==8.4.1",
+  "httpx==0.28.1",
+  "pyyaml==6.0.3",
+  "pytest-asyncio==1.1.0",
+  "hypothesis==6.151.9",
+  "schemathesis==4.5.2",
+  "dagster==1.12.18",
+  "ruff>=0.12,<0.13",
+]
+phase2 = [
+  "docling==2.77.0",
+  "tree-sitter==0.25.2",
+  "tree-sitter-python==0.25.0",
+  "lancedb==0.29.2",
+]
+phase3 = [
+  "dagster==1.12.18",
+]
+
+[build-system]
+requires = ["setuptools>=70", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["apps*", "libs*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+exclude = ["design-pack", "design-pack-v5", "design-pack-v6"]
