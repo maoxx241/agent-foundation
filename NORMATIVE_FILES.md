@@ -1,27 +1,21 @@
 # Normative Files
 
-This index defines the current source-of-truth files after the v7 normalization pass.
+This index defines the current source-of-truth files for public contracts, runtime layout, and core storage behavior.
 
-## Contracts
+## Normative
 
-- `contracts/openapi/artifact_api.v1.json`
-- `contracts/openapi/thin_kb_api.v1.json`
+- `contracts/openapi/*.json`
+- `contracts/jsonschema/*.json`
 - `docs/API_COMPATIBILITY.md`
-
-## Runtime Path Policy
-
 - `packages/core/config.py`
-- `docs/MIGRATION_V7_REPO.md`
-
-## Service Entrypoints
-
 - `apps/artifact_api/main.py`
 - `apps/thin_kb_api/main.py`
-
-## Workflow And Storage Models
-
 - `packages/core/schemas/`
 - `packages/core/storage/`
 - `packages/core/eval/`
 
-Generated exports under `generated/` are non-normative and may be regenerated.
+## Non-Normative
+
+- `generated/**`
+
+`generated/` is disposable convenience output. Contract drift and compatibility gates are enforced against frozen snapshots under `contracts/`, not against files under `generated/`.

@@ -45,6 +45,23 @@ def test_dagster_partial_subset_materializes_dependencies(tmp_path, monkeypatch)
     assert result.success
 
 
+def test_dagster_materializes_without_repo_local_shadow_runs(tmp_path, monkeypatch):
+    repo_root = _copy_eval_root(tmp_path)
+    state_root = tmp_path / "state"
+    monkeypatch.setenv("AGENT_FOUNDATION_REPO_ROOT", str(repo_root))
+    monkeypatch.setenv("AGENT_FOUNDATION_STATE_ROOT", str(state_root))
+    monkeypatch.setenv("AGENT_FOUNDATION_EVALS_ROOT", str(repo_root / "evals"))
+    monkeypatch.setenv("AGENT_FOUNDATION_REPORTS_ROOT", str(repo_root / "generated" / "reports"))
+    monkeypatch.setenv("AGENT_FOUNDATION_RUN_ID", "dagster-shadow-lock")
+
+    result = materialize(ALL_ASSETS)
+
+    assert result.success
+    assert (repo_root / "generated" / "reports" / "eval" / "dagster-shadow-lock" / "run.json").exists()
+    assert (state_root / "replay" / "captured_runs" / "dagster-shadow-lock").exists()
+    assert not (repo_root / "shadow_runs").exists()
+
+
 def test_dagster_invalid_replay_input_blocks_downstream(tmp_path, monkeypatch):
     repo_root = _copy_eval_root(tmp_path)
     (repo_root / "evals" / "corpora" / "replay" / "smoke.jsonl").write_text('{"case_id":"broken"}\n', encoding="utf-8")

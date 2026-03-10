@@ -25,6 +25,21 @@ def test_eval_runner_writes_reports_from_frozen_corpora(tmp_path):
     assert replay_payload["ok"] is True
 
 
+def test_eval_runner_repo_root_does_not_force_repo_local_shadow_runs(tmp_path, monkeypatch):
+    repo_root = tmp_path / "repo"
+    shadow_root = tmp_path / "state" / "replay" / "captured_runs"
+    repo_root.mkdir()
+    monkeypatch.setenv("AGENT_FOUNDATION_REPO_ROOT", str(repo_root))
+    monkeypatch.setenv("AGENT_FOUNDATION_SHADOW_RUNS_ROOT", str(shadow_root))
+
+    runner = EvaluationRunner(repo_root=repo_root)
+
+    assert runner.repo_root == repo_root.resolve()
+    assert runner.workspace_root == shadow_root.resolve()
+    assert runner.workspace_root != (repo_root / "shadow_runs").resolve()
+    assert not (repo_root / "shadow_runs").exists()
+
+
 def test_compare_runs_flags_regressed_case_ids(tmp_path):
     baseline = EvalRun(
         run_id="baseline",

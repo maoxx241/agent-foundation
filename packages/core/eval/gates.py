@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-from packages.core.config import contracts_root, generated_root, reports_root
+from packages.core.config import contracts_root, reports_root
 from packages.core.contracts import build_jsonschema_contracts, build_openapi_contracts
 from packages.core.schemas import ComparisonReport, EvalRun, EvalThresholds, ReleaseCheckReport, ThresholdFailure
 from packages.core.storage.fs_utils import ensure_dir
@@ -17,14 +17,10 @@ def check_contract_drift() -> bool:
     expected_jsonschema = build_jsonschema_contracts()
     frozen_openapi = contracts_root() / "openapi"
     frozen_jsonschema = contracts_root() / "jsonschema"
-    generated_openapi = generated_root() / "openapi"
-    generated_jsonschema = generated_root() / "jsonschema"
 
     comparisons = [
         _directory_matches(expected_openapi, frozen_openapi),
-        _directory_matches(expected_openapi, generated_openapi),
         _directory_matches(expected_jsonschema, frozen_jsonschema),
-        _directory_matches(expected_jsonschema, generated_jsonschema),
     ]
     return not all(comparisons)
 

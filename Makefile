@@ -18,7 +18,7 @@ migrate-state:
 	$(PYTHON) scripts/migrate_runtime_state.py
 
 plugin-check:
-	cd openclaw/plugin_adapter && npm test
+	cd openclaw/plugin_adapter && npm run check && npm test
 
 bootstrap-runtime:
 	$(PYTHON) -m apps.cli.main bootstrap-runtime
