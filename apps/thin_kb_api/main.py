@@ -10,10 +10,13 @@ from packages.core.config import (
     kb_db_path,
     kb_root,
     lancedb_indexes_root,
+    lancedb_sync_enabled,
     ledgers_root,
     observability_root,
+    phase2_allowed_source_roots,
     tasks_root,
     validate_runtime_roots,
+    validate_service_tokens,
 )
 from packages.core.observability import Observability, install_observability
 from packages.core.security import default_service_auth, install_auth, require_agent_access, require_operator_access
@@ -69,6 +72,8 @@ def create_app(
             tasks_root=_default_tasks_root() if using_default_store else state_parent / "tasks",
             canonical_store=store,
             lancedb_root=lancedb_indexes_root() if using_default_store else state_parent / "indexes" / "lancedb",
+            allowed_source_roots=phase2_allowed_source_roots() if using_default_store else (),
+            enable_lancedb_sync=lancedb_sync_enabled(),
         )
     if observability is None:
         root = _default_observability_root() if using_default_store else store.kb_root.parent / "observability"
@@ -79,7 +84,7 @@ def create_app(
     kb_service = ThinKBService(store, ledger_store)
     retrieval_service = RetrievalService(phase2_store, kb_service)
     writeback_service = WritebackService(kb_service)
-    install_auth(app, default_service_auth())
+    install_auth(app, default_service_auth(allow_insecure_defaults=True))
     install_observability(app, observability)
     app.state.kb_store = store
     app.state.phase2_store = phase2_store
@@ -96,6 +101,12 @@ def create_app(
     app.include_router(objects_router, dependencies=agent_dependencies)
     app.include_router(phase2_router, dependencies=agent_dependencies)
     app.include_router(internal_router, dependencies=operator_dependencies)
+
+    if using_default_store:
+
+        @app.on_event("startup")
+        async def validate_runtime_startup() -> None:
+            validate_service_tokens()
 
     @app.get("/healthz")
     def healthz() -> dict[str, str]:

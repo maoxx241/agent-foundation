@@ -14,16 +14,11 @@ from dagster import (
     define_asset_job,
 )
 
-from packages.core.config import evals_root, repo_root, reports_root
+from packages.core.config import evals_root, reports_root, shadow_runs_root
 from packages.core.eval.corpora import load_gold_cases, load_replay_cases
 from packages.core.eval.reporting import compare_runs, new_run_id, write_eval_run
 from packages.core.eval.runner import EvaluationRunner
 from packages.core.schemas import GoldQueryCase, ReplayCase
-
-
-def _repo_root() -> Path:
-    return repo_root()
-
 
 def _eval_root() -> Path:
     return evals_root()
@@ -49,7 +44,7 @@ def replay_corpus() -> list[dict]:
 
 @asset(retry_policy=RetryPolicy(max_retries=1))
 def replay_results(gold_datasets: list[dict], replay_corpus: list[dict]) -> dict:
-    runner = EvaluationRunner(_repo_root())
+    runner = EvaluationRunner(workspace_root=shadow_runs_root())
     run = runner.run(
         gold_cases=[GoldQueryCase.model_validate(item) for item in gold_datasets],
         replay_cases=[ReplayCase.model_validate(item) for item in replay_corpus],

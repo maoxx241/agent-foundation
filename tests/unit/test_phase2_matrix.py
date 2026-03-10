@@ -12,10 +12,17 @@ HAS_DOCLING = importlib.util.find_spec("docling") is not None
 HAS_LANCEDB = importlib.util.find_spec("lancedb") is not None
 
 
-def make_phase2_store(tmp_path) -> Phase2Store:
+def make_phase2_store(tmp_path, *, enable_lancedb_sync: bool = False) -> Phase2Store:
     kb_root = tmp_path / "kb"
     store = ThinKBStore(kb_root, kb_root / "manifest.sqlite3")
-    return Phase2Store(kb_root=kb_root, db_path=store.db_path, tasks_root=tmp_path / "tasks", canonical_store=store)
+    return Phase2Store(
+        kb_root=kb_root,
+        db_path=store.db_path,
+        tasks_root=tmp_path / "tasks",
+        canonical_store=store,
+        allowed_source_roots=[tmp_path],
+        enable_lancedb_sync=enable_lancedb_sync,
+    )
 
 
 @pytest.mark.skipif(not HAS_DOCLING, reason="docling is not installed")
@@ -84,8 +91,20 @@ def test_l09_domain_mismatch_returns_no_hits(tmp_path):
     assert result.hits == []
 
 
+def test_path_ingest_rejects_sources_outside_allowlist(tmp_path):
+    phase2 = make_phase2_store(tmp_path)
+    outside = tmp_path.parent / f"{tmp_path.name}-outside.md"
+    outside.write_text("secret", encoding="utf-8")
+    try:
+        with pytest.raises(ValidationError, match="configured ingest roots"):
+            phase2.ingest_document({"path": str(outside)})
+    finally:
+        if outside.exists():
+            outside.unlink()
+
+
 @pytest.mark.skipif(not HAS_LANCEDB, reason="lancedb is not installed")
 def test_l03_lancedb_sync_creates_local_index_artifacts(tmp_path):
-    phase2 = make_phase2_store(tmp_path)
+    phase2 = make_phase2_store(tmp_path, enable_lancedb_sync=True)
     phase2.ingest_document({"title": "lance.md", "content": "Vector and hybrid retrieval metadata."})
     assert any(phase2.lancedb_root.iterdir())

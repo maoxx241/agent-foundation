@@ -9,7 +9,7 @@ from typing import Any, Optional
 
 from fastapi import FastAPI, Request
 
-from packages.core.storage.fs_utils import ensure_dir, utc_now
+from packages.core.storage.fs_utils import append_jsonl_line, ensure_dir, utc_now
 
 
 class Observability:
@@ -260,6 +260,4 @@ def _rate(numerator: int, denominator: int) -> float:
 
 
 def _append_jsonl(path: Path, payload: dict[str, Any]) -> None:
-    ensure_dir(path.parent)
-    with path.open("a", encoding="utf-8") as handle:
-        handle.write(json.dumps(payload, ensure_ascii=True, sort_keys=True) + "\n")
+    append_jsonl_line(path, payload)

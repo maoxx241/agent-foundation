@@ -17,7 +17,7 @@ from packages.core.schemas import (
     RefinedWriteback,
     SourceRecord,
 )
-from packages.core.storage.fs_utils import NotFoundError, ValidationError, ensure_dir, read_json, read_text, utc_now, write_json_atomic
+from packages.core.storage.fs_utils import NotFoundError, ValidationError, ensure_dir, read_json, read_text, safe_child, utc_now, write_json_atomic
 from .thin_kb_store import ThinKBStore
 
 SOURCE_DIRS = {
@@ -34,6 +34,8 @@ class Phase2Store:
         tasks_root: Path,
         canonical_store: Optional[ThinKBStore] = None,
         lancedb_root: Optional[Path] = None,
+        allowed_source_roots: Optional[Iterable[Path]] = None,
+        enable_lancedb_sync: bool = False,
     ):
         self.kb_root = kb_root
         self.db_path = db_path or kb_root / "manifest.sqlite3"
@@ -41,6 +43,8 @@ class Phase2Store:
         self.sources_root = kb_root / "sources"
         self.extracts_root = kb_root / "extracts"
         self.lancedb_root = lancedb_root or kb_root / "lancedb"
+        self.allowed_source_roots = tuple(root.expanduser().resolve() for root in (allowed_source_roots or ()))
+        self.enable_lancedb_sync = enable_lancedb_sync
         self.canonical_store = canonical_store or ThinKBStore(kb_root=kb_root, db_path=self.db_path)
         for dir_name in SOURCE_DIRS.values():
             ensure_dir(self.sources_root / dir_name)
@@ -50,7 +54,7 @@ class Phase2Store:
     def ingest_document(self, payload: dict[str, Any]) -> ExtractBundle:
         raw_path = payload.get("path")
         content = str(payload.get("content") or "").strip()
-        path = Path(raw_path).expanduser().resolve() if raw_path else None
+        path = self._resolve_ingest_path(raw_path, source_type="document") if raw_path else None
         if not content and path is None:
             raise ValidationError("Document ingestion requires either 'content' or 'path'")
 
@@ -104,7 +108,7 @@ class Phase2Store:
     def ingest_code(self, payload: dict[str, Any]) -> ExtractBundle:
         raw_path = payload.get("path")
         content = str(payload.get("content") or "").rstrip()
-        path = Path(raw_path).expanduser().resolve() if raw_path else None
+        path = self._resolve_ingest_path(raw_path, source_type="code") if raw_path else None
         if not content and path is None:
             raise ValidationError("Code ingestion requires either 'content' or 'path'")
         if not content and path is not None:
@@ -322,11 +326,11 @@ class Phase2Store:
         return ExperiencePacket.model_validate(read_json(path))
 
     def _write_source(self, source: SourceRecord) -> None:
-        path = self.sources_root / SOURCE_DIRS[source.source_type] / f"{source.source_id}.json"
+        path = safe_child(self.sources_root / SOURCE_DIRS[source.source_type], f"{source.source_id}.json", field_name="source file")
         write_json_atomic(path, source.model_dump(mode="json"))
 
     def _write_extract_bundle(self, bundle: ExtractBundle) -> None:
-        path = self.extracts_root / SOURCE_DIRS[bundle.source_type] / f"{bundle.source_id}.json"
+        path = safe_child(self.extracts_root / SOURCE_DIRS[bundle.source_type], f"{bundle.source_id}.json", field_name="extract file")
         write_json_atomic(path, bundle.model_dump(mode="json"))
 
     def _extract_bundle_paths(self) -> Iterable[Path]:
@@ -334,7 +338,7 @@ class Phase2Store:
             yield from sorted((self.extracts_root / dir_name).glob("*.json"))
 
     def _sync_lancedb_index(self) -> None:
-        if not _lancedb_available():
+        if not self.enable_lancedb_sync or not _lancedb_available():
             return
         rows: list[dict[str, Any]] = []
         for path in self._extract_bundle_paths():
@@ -373,6 +377,16 @@ class Phase2Store:
             )
         except Exception:  # pragma: no cover - exercised only when optional deps exist
             return
+
+    def _resolve_ingest_path(self, raw_path: Any, *, source_type: str) -> Path:
+        path = Path(str(raw_path)).expanduser().resolve()
+        if not self.allowed_source_roots:
+            raise ValidationError(f"{source_type} path ingestion is disabled")
+        for root in self.allowed_source_roots:
+            if path.is_relative_to(root):
+                return path
+        allowed = ", ".join(str(root) for root in self.allowed_source_roots)
+        raise ValidationError(f"{source_type} path must stay within configured ingest roots: {allowed}")
 
 
 def _metadata(payload: dict[str, Any]) -> dict[str, Any]:

@@ -30,10 +30,10 @@ class ServiceAuth:
         return resolved
 
 
-def default_service_auth() -> ServiceAuth:
+def default_service_auth(*, allow_insecure_defaults: bool = False) -> ServiceAuth:
     return ServiceAuth(
-        agent_service_token=agent_token(),
-        operator_service_token=operator_token(),
+        agent_service_token=agent_token(allow_insecure_default=allow_insecure_defaults),
+        operator_service_token=operator_token(allow_insecure_default=allow_insecure_defaults),
     )
 
 

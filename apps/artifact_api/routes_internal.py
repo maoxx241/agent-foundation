@@ -25,10 +25,15 @@ def archive_task(task_id: str, payload: ArchiveTaskRequest, request: Request) ->
         )
     except NotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
-    except (ConflictError, ValidationError) as exc:
+    except ConflictError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except ValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.get("/internal/v1/audit/task/{task_id}")
 def get_task_audit(task_id: str, request: Request) -> dict:
-    return get_service(request).task_audit_report(task_id).model_dump(mode="json")
+    try:
+        return get_service(request).task_audit_report(task_id).model_dump(mode="json")
+    except ValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc

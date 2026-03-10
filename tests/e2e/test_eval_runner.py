@@ -7,7 +7,7 @@ from packages.core.schemas import EvalRun, ReplayCaseResult, RetrievalCaseResult
 
 
 def test_eval_runner_writes_reports_from_frozen_corpora(tmp_path):
-    runner = EvaluationRunner(repo_root=tmp_path)
+    runner = EvaluationRunner(repo_root=tmp_path, workspace_root=tmp_path / "shadow_runs")
     run = runner.run(
         gold_cases=load_gold_cases()[:2],
         replay_cases=load_replay_cases()[:2],

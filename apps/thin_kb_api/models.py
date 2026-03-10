@@ -64,3 +64,12 @@ class DeprecateObjectRequest(BaseSchema):
     changed_by: str
     reason: str
     superseded_by: Optional[str] = None
+
+
+KBSearchRequest.model_rebuild()
+DocumentIngestRequest.model_rebuild()
+CodeIngestRequest.model_rebuild()
+HybridSearchRequest.model_rebuild()
+RefineWritebackRequest.model_rebuild()
+PromoteCandidateRequest.model_rebuild()
+DeprecateObjectRequest.model_rebuild()

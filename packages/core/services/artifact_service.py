@@ -3,7 +3,7 @@ from __future__ import annotations
 from packages.core.events import TaskAuditReport
 from packages.core.stores.artifact_store import ArtifactStore
 from packages.core.stores.ledger_store import LedgerStore
-from packages.core.storage.fs_utils import ConflictError, NotFoundError, ValidationError
+from packages.core.storage.fs_utils import ConflictError, NotFoundError, ValidationError, validate_storage_identifier
 
 
 class ArtifactService:
@@ -16,8 +16,9 @@ class ArtifactService:
         try:
             result = self.store.create_task(payload)
         except (ConflictError, ValidationError) as exc:
+            audit_task_id = _audit_task_id(task_id)
             self.ledger_store.append_task_event(
-                task_id or "unknown-task",
+                audit_task_id,
                 "task_create_rejected",
                 actor=actor,
                 trace_id=trace_id,
@@ -179,3 +180,10 @@ class ArtifactService:
             current=current,
             events=self.ledger_store.read_task_events(task_id),
         )
+
+
+def _audit_task_id(task_id: str) -> str:
+    try:
+        return validate_storage_identifier(task_id, field_name="task_id")
+    except ValidationError:
+        return "unknown-task"

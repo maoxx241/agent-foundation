@@ -1,24 +1,24 @@
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 
 from pydantic import AliasChoices, Field
 
-from packages.core.schemas.common import BaseSchema, TaskState
+from packages.core.schemas.common import BaseSchema, EnvTuple, Reference, StorageIdentifier, TaskState
 
 
 class CreateTaskRequest(BaseSchema):
-    task_id: str
+    task_id: StorageIdentifier
     project_id: str
     title: str
     goal: str
     description: Optional[str] = None
     requester: Optional[str] = None
-    priority: str = "medium"
+    priority: Literal["low", "medium", "high", "critical"] = "medium"
     domain_tags: list[str] = Field(default_factory=list)
-    env: dict[str, Any] = Field(default_factory=dict)
+    env: EnvTuple = Field(default_factory=EnvTuple)
     acceptance_hint: Optional[str] = None
-    initial_refs: list[dict[str, Any]] = Field(default_factory=list)
+    initial_refs: list[Reference] = Field(default_factory=list)
 
 
 class UpdateTaskStateRequest(BaseSchema):
@@ -35,3 +35,9 @@ class PutArtifactRequest(BaseSchema):
 class ArchiveTaskRequest(BaseSchema):
     changed_by: str
     reason: Optional[str] = None
+
+
+CreateTaskRequest.model_rebuild()
+UpdateTaskStateRequest.model_rebuild()
+PutArtifactRequest.model_rebuild()
+ArchiveTaskRequest.model_rebuild()

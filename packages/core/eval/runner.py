@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 
 from apps.artifact_api.main import create_app as create_artifact_app
 from apps.thin_kb_api.main import create_app as create_kb_app
-from packages.core.config import repo_root as default_repo_root
+from packages.core.config import agent_token, operator_token, repo_root as default_repo_root
 from packages.core.config import shadow_runs_root
 from packages.core.observability import Observability
 from packages.core.schemas import (
@@ -23,9 +23,16 @@ from packages.core.storage.artifact_store import ArtifactStore
 from packages.core.storage.fs_utils import ensure_dir, utc_now
 from packages.core.storage.phase2_store import Phase2Store
 from packages.core.storage.thin_kb_store import ThinKBStore
-from tests.helpers import AGENT_HEADERS, OPERATOR_HEADERS
 from .metrics import compute_retrieval_metrics, compute_workflow_metrics
 from .reporting import new_run_id
+
+
+def _agent_headers() -> dict[str, str]:
+    return {"x-service-token": agent_token(allow_insecure_default=True)}
+
+
+def _operator_headers() -> dict[str, str]:
+    return {"x-service-token": operator_token(allow_insecure_default=True)}
 
 
 class EvaluationRunner:
@@ -33,8 +40,6 @@ class EvaluationRunner:
         self.repo_root = repo_root.resolve() if repo_root is not None else default_repo_root()
         if workspace_root is not None:
             self.workspace_root = workspace_root.resolve()
-        elif repo_root is not None:
-            self.workspace_root = (self.repo_root / "shadow_runs").resolve()
         else:
             self.workspace_root = shadow_runs_root()
 
@@ -175,19 +180,19 @@ class EvaluationRunner:
         phase2_store = Phase2Store(kb_root=kb_root, db_path=kb_store.db_path, tasks_root=tasks_root, canonical_store=kb_store)
         artifact_client = TestClient(
             create_artifact_app(artifact_store, Observability(observability_root / "artifact_api")),
-            headers=AGENT_HEADERS,
+            headers=_agent_headers(),
         )
         artifact_operator_client = TestClient(
             create_artifact_app(artifact_store, Observability(observability_root / "artifact_api_operator")),
-            headers=OPERATOR_HEADERS,
+            headers=_operator_headers(),
         )
         kb_client = TestClient(
             create_kb_app(kb_store, phase2_store, Observability(observability_root / "thin_kb_api")),
-            headers=AGENT_HEADERS,
+            headers=_agent_headers(),
         )
         kb_operator_client = TestClient(
             create_kb_app(kb_store, phase2_store, Observability(observability_root / "thin_kb_api_operator")),
-            headers=OPERATOR_HEADERS,
+            headers=_operator_headers(),
         )
         return {
             "artifact_client": artifact_client,

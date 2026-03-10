@@ -49,4 +49,7 @@ def deprecate_object(object_id: str, payload: DeprecateObjectRequest, request: R
 
 @router.get("/internal/v1/audit/object/{object_id}")
 def get_object_audit(object_id: str, request: Request) -> dict:
-    return get_service(request).object_audit_report(object_id).model_dump(mode="json")
+    try:
+        return get_service(request).object_audit_report(object_id).model_dump(mode="json")
+    except ValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc

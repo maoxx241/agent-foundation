@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import Field
 
-from .common import BaseSchema, EnvTuple, Reference, TaskState, Timestamped
+from .common import BaseSchema, EnvTuple, Reference, StorageIdentifier, TaskState, Timestamped
 
 
 class VersionedArtifact(Timestamped):
@@ -12,7 +12,7 @@ class VersionedArtifact(Timestamped):
 
 
 class TaskBrief(VersionedArtifact):
-    task_id: str
+    task_id: StorageIdentifier
     project_id: str
     title: str
     goal: str

@@ -10,7 +10,7 @@ from tests.helpers import (
 )
 
 
-def test_state_update_is_idempotent(tmp_path):
+def test_state_update_rejects_same_state_noop(tmp_path):
     client = make_artifact_client(tmp_path)
     task_id = "task-idempotent-state"
     create_task(client, task_id)
@@ -21,6 +21,10 @@ def test_state_update_is_idempotent(tmp_path):
     updated_at = response.json()["state"]["updated_at"]
 
     response = patch_state(client, task_id, "EVIDENCE_READY", "lead")
+    assert response.status_code == 409, response.text
+    assert "already in state EVIDENCE_READY" in response.json()["detail"]
+
+    response = client.get(f"/v1/tasks/{task_id}")
     assert response.status_code == 200, response.text
     assert response.json()["state"]["state"] == "EVIDENCE_READY"
     assert response.json()["state"]["updated_at"] == updated_at

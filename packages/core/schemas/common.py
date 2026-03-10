@@ -2,9 +2,21 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Literal, Optional
+from typing import Annotated, Any, Dict, List, Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AfterValidator, BaseModel, ConfigDict, Field
+
+from packages.core.storage.fs_utils import ValidationError, validate_storage_identifier
+
+
+def _validate_storage_identifier_field(value: str) -> str:
+    try:
+        return validate_storage_identifier(value)
+    except ValidationError as exc:
+        raise ValueError(str(exc)) from exc
+
+
+StorageIdentifier = Annotated[str, AfterValidator(_validate_storage_identifier_field)]
 
 
 class BaseSchema(BaseModel):
@@ -127,4 +139,3 @@ class SearchResponse(BaseSchema):
     query: str
     hits: List[SearchHit] = Field(default_factory=list)
     warnings: List[str] = Field(default_factory=list)
-

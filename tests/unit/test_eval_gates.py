@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from packages.core.eval.gates import build_release_check_report, evaluate_comparison_thresholds, evaluate_eval_thresholds
+from packages.core.eval.gates import _directory_matches, build_release_check_report, evaluate_comparison_thresholds, evaluate_eval_thresholds
 from packages.core.schemas import ComparisonReport, EvalRun, EvalThresholds, MetricThreshold, ReplayCaseResult, RetrievalCaseResult, WorkflowMetrics
 
 
@@ -77,3 +77,12 @@ def test_release_check_report_blocks_when_baseline_required_but_missing():
 
     assert report.overall_status == "blocked"
     assert report.threshold_failures
+
+
+def test_directory_matches_rejects_stale_extra_files(tmp_path):
+    root = tmp_path / "contracts"
+    root.mkdir()
+    (root / "artifact.json").write_text('{"ok": true}\n', encoding="utf-8")
+    (root / "stale.json").write_text('{"stale": true}\n', encoding="utf-8")
+
+    assert _directory_matches({"artifact.json": {"ok": True}}, root) is False

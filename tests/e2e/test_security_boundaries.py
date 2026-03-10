@@ -28,6 +28,21 @@ def test_s03_artifact_api_rejects_unknown_fields(tmp_path):
     assert response.status_code == 422
 
 
+def test_s03_artifact_api_rejects_path_escape_task_ids(tmp_path):
+    client = make_artifact_client(tmp_path)
+    response = client.post(
+        "/v1/tasks",
+        json={
+            "task_id": "../task-escape",
+            "project_id": "proj",
+            "title": "escape",
+            "goal": "escape",
+        },
+    )
+    assert response.status_code == 422
+    assert not any((tmp_path / "tasks" / "active").iterdir())
+
+
 def test_s03_thin_kb_api_rejects_unknown_fields(tmp_path):
     client = make_kb_client(tmp_path)
     response = client.post("/v1/kb/search", json={"query": "fts", "unexpected": "boom"})

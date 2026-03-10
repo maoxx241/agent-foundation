@@ -21,6 +21,8 @@ def list_artifacts(task_id: str, request: Request) -> dict:
         }
     except NotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.get("/v1/tasks/{task_id}/artifacts/{stage}/{name}")

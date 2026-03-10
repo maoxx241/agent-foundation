@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Request
 
-from packages.core.storage.fs_utils import NotFoundError
+from packages.core.storage.fs_utils import NotFoundError, ValidationError
 from .models import KBSearchRequest
 
 router = APIRouter()
@@ -33,6 +33,8 @@ def get_object(object_id: str, request: Request) -> dict:
         return get_service(request).get(object_id)
     except NotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.get("/v1/kb/related/{object_id}")
@@ -41,3 +43,5 @@ def get_related(object_id: str, request: Request) -> dict:
         return get_service(request).related(object_id)
     except NotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc

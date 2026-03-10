@@ -4,11 +4,11 @@ from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import Field
 
-from .common import EnvTuple, KBStatus, Scope, Timestamped, TrustLevel
+from .common import EnvTuple, KBStatus, Scope, StorageIdentifier, Timestamped, TrustLevel
 
 
 class KBObject(Timestamped):
-    id: str
+    id: StorageIdentifier
     object_type: str
     title: str
     summary: Optional[str] = None

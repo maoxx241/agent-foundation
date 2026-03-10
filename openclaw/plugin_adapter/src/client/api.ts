@@ -75,11 +75,15 @@ export async function requestJson<T>(
 }
 
 export function resolveConfig(config?: Partial<PluginConfig>): PluginConfig {
+  const serviceToken = config?.serviceToken ?? process.env.AGENT_FOUNDATION_AGENT_TOKEN;
+  if (!serviceToken) {
+    throw new Error("AGENT_FOUNDATION_AGENT_TOKEN or config.serviceToken must be set");
+  }
   return {
     artifactApiBaseUrl: config?.artifactApiBaseUrl ?? process.env.ARTIFACT_API_BASE_URL ?? "http://127.0.0.1:8081",
     thinKbApiBaseUrl: config?.thinKbApiBaseUrl ?? process.env.THIN_KB_API_BASE_URL ?? "http://127.0.0.1:8082",
     requestTimeoutMs: config?.requestTimeoutMs ?? Number(process.env.REQUEST_TIMEOUT_MS ?? "5000"),
-    serviceToken: config?.serviceToken ?? process.env.AGENT_FOUNDATION_AGENT_TOKEN ?? "agent-token",
+    serviceToken,
   };
 }
 

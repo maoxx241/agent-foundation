@@ -40,6 +40,8 @@ def get_task(task_id: str, request: Request) -> dict:
         return get_service(request).get_task(task_id)
     except NotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.patch("/v1/tasks/{task_id}/state")
@@ -90,3 +92,5 @@ def get_task_bundle(task_id: str, request: Request) -> dict:
         return get_service(request).bundle_task(task_id)
     except NotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc

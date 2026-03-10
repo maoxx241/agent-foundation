@@ -9,7 +9,7 @@ from packages.core.migrations.registry import apply_kb_payload_migrations
 from packages.core.schemas import Case, Claim, Decision, Procedure, SearchHit, SearchResponse
 from packages.core.schemas.common import KBStatus, Scope
 from packages.core.schemas.thin_kb import KBObject
-from .fs_utils import NotFoundError, ValidationError, ensure_dir, read_json, utc_now, write_json_atomic
+from .fs_utils import NotFoundError, ValidationError, ensure_dir, read_json, safe_child, utc_now, validate_storage_identifier, write_json_atomic
 
 OBJECT_MODELS: dict[str, Type[KBObject]] = {
     "claim": Claim,
@@ -73,6 +73,7 @@ class ThinKBStore:
             for dir_name in OBJECT_DIRS.values():
                 ensure_dir(tier_root / dir_name)
         self._init_db()
+        self._recover_manifest_if_needed()
 
     def upsert(self, payload: dict[str, Any], storage_tier: Optional[str] = None) -> dict[str, Any]:
         object_type = str(payload.get("object_type", "")).strip()
@@ -102,8 +103,18 @@ class ThinKBStore:
         record = model.model_dump(mode="json")
         path = self.object_path(model.object_type, model.id, inferred_tier)
         previous_path = Path(existing_row["file_path"]) if existing_row is not None else None
+        previous_payload = read_json(previous_path) if previous_path is not None and previous_path.exists() else None
         write_json_atomic(path, record)
-        self._sync_object(record, path, inferred_tier)
+        try:
+            self._sync_object(record, path, inferred_tier)
+        except Exception:
+            if previous_payload is not None and previous_path is not None:
+                write_json_atomic(previous_path, previous_payload)
+                if previous_path != path and path.exists():
+                    path.unlink()
+            elif path.exists():
+                path.unlink()
+            raise
         if previous_path is not None and previous_path != path and previous_path.exists():
             previous_path.unlink()
         return record
@@ -114,6 +125,7 @@ class ThinKBStore:
         return self.upsert(item, storage_tier="candidate")
 
     def promote_candidate(self, candidate_id: str, *, promoted_by: str, reason: Optional[str] = None) -> dict[str, Any]:
+        candidate_id = validate_storage_identifier(candidate_id, field_name="candidate_id")
         row = self._fetch_manifest_row(candidate_id)
         if row is None:
             raise NotFoundError(f"KB object not found: {candidate_id}")
@@ -147,6 +159,7 @@ class ThinKBStore:
         reason: str,
         superseded_by: str | None = None,
     ) -> dict[str, Any]:
+        object_id = validate_storage_identifier(object_id, field_name="object_id")
         row = self._fetch_manifest_row(object_id)
         if row is None:
             raise NotFoundError(f"KB object not found: {object_id}")
@@ -173,12 +186,14 @@ class ThinKBStore:
         return deprecated
 
     def get(self, object_id: str) -> dict[str, Any]:
+        object_id = validate_storage_identifier(object_id, field_name="object_id")
         row = self._fetch_manifest_row(object_id)
         if row is None:
             raise NotFoundError(f"KB object not found: {object_id}")
         return self._load_object_from_row(row)
 
     def related(self, object_id: str) -> dict[str, Any]:
+        object_id = validate_storage_identifier(object_id, field_name="object_id")
         obj = self.get(object_id)
         related_objects = []
         for related_id in obj.get("related_ids", []):
@@ -273,7 +288,8 @@ class ThinKBStore:
         dir_name = OBJECT_DIRS.get(object_type)
         if dir_name is None:
             raise ValidationError(f"Unsupported KB object type: {object_type}")
-        return self._tier_roots()[storage_tier] / dir_name / f"{object_id}.json"
+        object_id = validate_storage_identifier(object_id, field_name="object_id")
+        return safe_child(self._tier_roots()[storage_tier] / dir_name, f"{object_id}.json", field_name="object file")
 
     def _init_db(self) -> None:
         ensure_dir(self.db_path.parent)
@@ -281,6 +297,13 @@ class ThinKBStore:
             conn.executescript(MANIFEST_SQL)
             self._ensure_manifest_columns(conn)
             conn.commit()
+
+    def _recover_manifest_if_needed(self) -> None:
+        disk_paths = {str(path.resolve()) for path in self._disk_object_paths()}
+        with self._connect() as conn:
+            manifest_paths = {str(Path(row["file_path"]).resolve()) for row in conn.execute("SELECT file_path FROM kb_objects").fetchall()}
+        if disk_paths != manifest_paths:
+            self.rebuild_index()
 
     def _ensure_manifest_columns(self, conn: sqlite3.Connection) -> None:
         columns = {row["name"] for row in conn.execute("PRAGMA table_info(kb_objects)").fetchall()}
@@ -391,6 +414,7 @@ class ThinKBStore:
             return list(conn.execute(sql, params).fetchall())
 
     def _fetch_manifest_row(self, object_id: str) -> Optional[sqlite3.Row]:
+        object_id = validate_storage_identifier(object_id, field_name="object_id")
         with self._connect() as conn:
             return conn.execute("SELECT * FROM kb_objects WHERE id = ?", (object_id,)).fetchone()
 
@@ -419,6 +443,13 @@ class ThinKBStore:
             "deprecated": self.deprecated_root,
         }
 
+    def _disk_object_paths(self) -> list[Path]:
+        paths: list[Path] = []
+        for tier_root in self._tier_roots().values():
+            for dir_name in OBJECT_DIRS.values():
+                paths.extend(sorted((tier_root / dir_name).glob("*.json")))
+        return paths
+
 
 def _body_text(payload: dict[str, Any]) -> str:
     chunks: list[str] = []
@@ -444,8 +475,29 @@ def _is_exact_lookup(query: str, item: dict[str, Any]) -> bool:
 
 
 def _fts_query(query: str) -> str:
-    escaped = query.replace('"', '""').strip()
-    return f'"{escaped}"'
+    raw = query.strip()
+    if not raw:
+        return ""
+    if len(raw) >= 2 and raw.startswith('"') and raw.endswith('"'):
+        escaped = raw[1:-1].replace('"', '""')
+        return f'"{escaped}"'
+
+    terms: list[str] = []
+    for token in raw.split():
+        upper = token.upper()
+        if upper in {"AND", "OR", "NOT"} or upper.startswith("NEAR"):
+            terms.append(upper)
+            continue
+        if _is_bareword_token(token):
+            terms.append(token)
+        else:
+            escaped = token.replace('"', '""')
+            terms.append(f'"{escaped}"')
+    return " ".join(terms)
+
+
+def _is_bareword_token(token: str) -> bool:
+    return bool(token) and all(char.isalnum() or char in {"_", "*"} for char in token)
 
 
 def _normalize_status(status: Any, storage_tier: str) -> str:

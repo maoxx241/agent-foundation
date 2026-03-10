@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import json
 import uuid
 from pathlib import Path
 from typing import Any
 
 from packages.core.events import AuditEvent, KBEvent, LedgerEvent, ReleaseEvent, ReplayRunEvent, TaskEvent
-from packages.core.storage.fs_utils import ensure_dir, utc_now
+from packages.core.storage.fs_utils import append_jsonl_line, ensure_dir, safe_child, utc_now, validate_storage_identifier
 
 
 class LedgerStore:
@@ -34,7 +33,7 @@ class LedgerStore:
         **payload: Any,
     ) -> TaskEvent:
         event = TaskEvent(**self._event_fields("task", task_id, event_type, actor, trace_id, run_id, payload))
-        self._append_jsonl(self.task_events_root / f"{task_id}.jsonl", event.model_dump(mode="json"))
+        self._append_jsonl(self._event_path(self.task_events_root, task_id, field_name="task_id"), event.model_dump(mode="json"))
         return event
 
     def append_kb_event(
@@ -48,7 +47,7 @@ class LedgerStore:
         **payload: Any,
     ) -> KBEvent:
         event = KBEvent(**self._event_fields("kb", object_id, event_type, actor, trace_id, run_id, payload))
-        self._append_jsonl(self.kb_events_root / f"{object_id}.jsonl", event.model_dump(mode="json"))
+        self._append_jsonl(self._event_path(self.kb_events_root, object_id, field_name="object_id"), event.model_dump(mode="json"))
         return event
 
     def append_audit_event(
@@ -79,7 +78,7 @@ class LedgerStore:
         event = ReplayRunEvent(
             **self._event_fields("replay_run", run_id_value, event_type, actor, trace_id, run_id or run_id_value, payload)
         )
-        self._append_jsonl(self.replay_runs_root / f"{run_id_value}.jsonl", event.model_dump(mode="json"))
+        self._append_jsonl(self._event_path(self.replay_runs_root, run_id_value, field_name="run_id"), event.model_dump(mode="json"))
         return event
 
     def append_release_event(
@@ -93,14 +92,14 @@ class LedgerStore:
         **payload: Any,
     ) -> ReleaseEvent:
         event = ReleaseEvent(**self._event_fields("release", release_id, event_type, actor, trace_id, run_id, payload))
-        self._append_jsonl(self.release_root / f"{release_id}.jsonl", event.model_dump(mode="json"))
+        self._append_jsonl(self._event_path(self.release_root, release_id, field_name="release_id"), event.model_dump(mode="json"))
         return event
 
     def read_task_events(self, task_id: str) -> list[LedgerEvent]:
-        return self._read_events(self.task_events_root / f"{task_id}.jsonl")
+        return self._read_events(self._event_path(self.task_events_root, task_id, field_name="task_id"))
 
     def read_kb_events(self, object_id: str) -> list[LedgerEvent]:
-        return self._read_events(self.kb_events_root / f"{object_id}.jsonl")
+        return self._read_events(self._event_path(self.kb_events_root, object_id, field_name="object_id"))
 
     def read_audit_events(self) -> list[LedgerEvent]:
         events: list[LedgerEvent] = []
@@ -109,10 +108,10 @@ class LedgerStore:
         return events
 
     def read_replay_run_events(self, run_id_value: str) -> list[LedgerEvent]:
-        return self._read_events(self.replay_runs_root / f"{run_id_value}.jsonl")
+        return self._read_events(self._event_path(self.replay_runs_root, run_id_value, field_name="run_id"))
 
     def read_release_events(self, release_id: str) -> list[LedgerEvent]:
-        return self._read_events(self.release_root / f"{release_id}.jsonl")
+        return self._read_events(self._event_path(self.release_root, release_id, field_name="release_id"))
 
     def _read_events(self, path: Path) -> list[LedgerEvent]:
         if not path.exists():
@@ -125,9 +124,11 @@ class LedgerStore:
         return events
 
     def _append_jsonl(self, path: Path, payload: dict[str, Any]) -> None:
-        ensure_dir(path.parent)
-        with path.open("a", encoding="utf-8") as handle:
-            handle.write(json.dumps(payload, ensure_ascii=True, sort_keys=True) + "\n")
+        append_jsonl_line(path, payload)
+
+    def _event_path(self, root: Path, identifier: str, *, field_name: str) -> Path:
+        validate_storage_identifier(identifier, field_name=field_name)
+        return safe_child(root, f"{identifier}.jsonl", field_name=f"{field_name} ledger file")
 
     def _event_fields(
         self,

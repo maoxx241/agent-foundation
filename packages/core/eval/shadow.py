@@ -6,15 +6,14 @@ from pathlib import Path
 
 from packages.core.observability import Observability
 from packages.core.schemas import EvalRun, InterventionRecord, RunSummary
-from packages.core.storage.fs_utils import ensure_dir, utc_now, write_json_atomic, write_text_atomic
+from packages.core.storage.fs_utils import append_jsonl_line, ensure_dir, utc_now, write_json_atomic, write_text_atomic
 from .metrics import compute_workflow_metrics
 
 
 def append_intervention(report_root: Path, record: InterventionRecord, observability_root: Path | None = None) -> Path:
     ensure_dir(report_root)
     path = report_root / "interventions.jsonl"
-    with path.open("a", encoding="utf-8") as handle:
-        handle.write(record.model_dump_json() + "\n")
+    append_jsonl_line(path, record.model_dump(mode="json"))
     if observability_root is not None:
         observability = Observability(observability_root)
         observability.emit_event(

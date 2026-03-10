@@ -177,6 +177,9 @@ def _check_threshold_group(group: str, metrics: dict[str, Any], thresholds: list
 
 def _directory_matches(expected: dict[str, dict[str, Any]], root: Path) -> bool:
     ensure_dir(root)
+    actual_files = sorted(path.name for path in root.glob("*.json"))
+    if actual_files != sorted(expected):
+        return False
     for name, payload in expected.items():
         path = root / name
         if not path.exists():

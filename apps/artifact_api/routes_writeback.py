@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException, Request
 
 from packages.core.observability import record_event, record_metric
-from packages.core.storage.fs_utils import ConflictError, NotFoundError
+from packages.core.storage.fs_utils import ConflictError, NotFoundError, ValidationError
 
 router = APIRouter()
 
@@ -30,3 +30,5 @@ def finalize_experience(task_id: str, request: Request) -> dict:
     except ConflictError as exc:
         record_event(request, "writeback_finalize_rejected", task_id=task_id, reason=str(exc), level="warning")
         raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except ValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc

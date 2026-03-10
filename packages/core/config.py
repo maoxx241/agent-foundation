@@ -4,6 +4,9 @@ import os
 import sys
 from pathlib import Path
 
+DEFAULT_AGENT_SERVICE_TOKEN = "agent-token"
+DEFAULT_OPERATOR_SERVICE_TOKEN = "operator-token"
+
 
 def repo_root() -> Path:
     return _resolve(os.getenv("AGENT_FOUNDATION_REPO_ROOT"), Path(__file__).resolve().parents[2])
@@ -133,12 +136,33 @@ def agent_tmp_root() -> Path:
     return workspace_root() / "agent_tmp"
 
 
-def agent_token() -> str:
-    return os.getenv("AGENT_FOUNDATION_AGENT_TOKEN", "agent-token")
+def phase2_allowed_source_roots() -> tuple[Path, ...]:
+    return (worktrees_root(), sandboxes_root())
 
 
-def operator_token() -> str:
-    return os.getenv("AGENT_FOUNDATION_OPERATOR_TOKEN", "operator-token")
+def lancedb_sync_enabled() -> bool:
+    return os.getenv("AGENT_FOUNDATION_ENABLE_LANCEDB_SYNC", "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def agent_token(*, allow_insecure_default: bool = False) -> str:
+    return _service_token(
+        "AGENT_FOUNDATION_AGENT_TOKEN",
+        DEFAULT_AGENT_SERVICE_TOKEN,
+        allow_insecure_default=allow_insecure_default,
+    )
+
+
+def operator_token(*, allow_insecure_default: bool = False) -> str:
+    return _service_token(
+        "AGENT_FOUNDATION_OPERATOR_TOKEN",
+        DEFAULT_OPERATOR_SERVICE_TOKEN,
+        allow_insecure_default=allow_insecure_default,
+    )
+
+
+def validate_service_tokens() -> None:
+    agent_token()
+    operator_token()
 
 
 def ensure_state_layout() -> dict[str, Path]:
@@ -227,6 +251,17 @@ def _resolve(value: str | None, default: Path) -> Path:
     if value:
         return Path(value).expanduser().resolve()
     return default.expanduser().resolve()
+
+
+def _service_token(env_name: str, default: str, *, allow_insecure_default: bool) -> str:
+    value = os.getenv(env_name)
+    if value:
+        return value
+    if allow_insecure_default:
+        return default
+    raise RuntimeError(
+        f"{env_name} must be configured; insecure default service tokens are disabled for runtime startup"
+    )
 
 
 def _default_state_root() -> Path:

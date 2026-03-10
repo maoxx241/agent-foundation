@@ -10,7 +10,13 @@ from packages.core.storage.thin_kb_store import ThinKBStore
 def make_store(tmp_path) -> tuple[Phase2Store, ThinKBStore]:
     kb_root = tmp_path / "kb"
     canonical = ThinKBStore(kb_root, kb_root / "manifest.sqlite3")
-    phase2 = Phase2Store(kb_root=kb_root, db_path=canonical.db_path, tasks_root=tmp_path / "tasks", canonical_store=canonical)
+    phase2 = Phase2Store(
+        kb_root=kb_root,
+        db_path=canonical.db_path,
+        tasks_root=tmp_path / "tasks",
+        canonical_store=canonical,
+        allowed_source_roots=[tmp_path],
+    )
     return phase2, canonical
 
 

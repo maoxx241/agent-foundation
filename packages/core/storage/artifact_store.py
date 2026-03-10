@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import shutil
+import tempfile
 from pathlib import Path
 from typing import Any, Optional, Type
 
@@ -20,6 +22,7 @@ from packages.core.schemas.artifacts import (
     ValidationReport,
 )
 from .fs_utils import ConflictError, NotFoundError, ValidationError, ensure_dir, list_files, read_json, read_text, utc_now, write_json_atomic, write_text_atomic
+from .fs_utils import safe_child
 from .state_machine import is_state_at_least, validate_transition
 
 SCHEMA_MODELS: dict[str, Type[BaseModel]] = {
@@ -78,14 +81,14 @@ class ArtifactStore:
         if task_root.exists():
             raise ConflictError(f"Task already exists: {task_id}")
 
-        for stage in ArtifactStage:
-            ensure_dir(task_root / stage.value)
-
         now = utc_now()
         task_payload = dict(payload)
         task_payload.setdefault("created_at", now.isoformat())
         task_payload["updated_at"] = now.isoformat()
-        task_brief = TaskBrief.model_validate(task_payload).model_dump(mode="json")
+        try:
+            task_brief = TaskBrief.model_validate(task_payload).model_dump(mode="json")
+        except PydanticValidationError as exc:
+            raise ValidationError(str(exc)) from exc
 
         state_record = TaskStateRecord(
             task_id=task_id,
@@ -97,8 +100,20 @@ class ArtifactStore:
             updated_at=now,
         ).model_dump(mode="json")
 
-        write_json_atomic(task_root / ArtifactStage.task.value / "task-brief.json", task_brief)
-        write_json_atomic(task_root / ArtifactStage.task.value / "state.json", state_record)
+        staging_root = Path(tempfile.mkdtemp(prefix=f".task-{task_id}-", dir=self.active_root))
+        try:
+            for stage in ArtifactStage:
+                ensure_dir(staging_root / stage.value)
+            write_json_atomic(staging_root / ArtifactStage.task.value / "task-brief.json", task_brief)
+            write_json_atomic(staging_root / ArtifactStage.task.value / "state.json", state_record)
+            try:
+                staging_root.replace(task_root)
+            except OSError as exc:
+                raise ConflictError(f"Task already exists: {task_id}") from exc
+        except Exception:
+            if staging_root.exists():
+                shutil.rmtree(staging_root, ignore_errors=True)
+            raise
 
         return self.get_task(task_id)
 
@@ -178,7 +193,7 @@ class ArtifactStore:
         current_state = TaskState(current_state_record["state"])
         target_state = TaskState(target_state)
         if current_state == target_state:
-            return self.get_task(task_id)
+            raise ConflictError(f"Task {task_id} is already in state {target_state.value}")
         validate_transition(task_root, current_state, target_state)
 
         now = utc_now()
@@ -244,7 +259,7 @@ class ArtifactStore:
         if not source.exists():
             raise NotFoundError(f"Task not found: {task_id}")
 
-        destination = self.archived_root / task_id
+        destination = safe_child(self.archived_root, task_id, field_name="task_id")
         if destination.exists():
             raise ConflictError(f"Archived task already exists: {task_id}")
 
@@ -258,14 +273,14 @@ class ArtifactStore:
         }
 
     def task_root(self, task_id: str) -> Path:
-        return self.active_root / task_id
+        return safe_child(self.active_root, task_id, field_name="task_id")
 
     def _artifact_path(self, task_id: str, stage: str, name: str) -> Path:
         task_root = self.task_root(task_id)
         if not task_root.exists():
             raise NotFoundError(f"Task not found: {task_id}")
         self._validate_name(stage, name)
-        return task_root / stage / name
+        return safe_child(task_root / stage, name, field_name="artifact name")
 
     def _validate_name(self, stage: str, name: str) -> None:
         allowed = ALLOWED_STAGE_FILES.get(stage)
