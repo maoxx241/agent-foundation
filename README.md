@@ -1,55 +1,61 @@
 # agent-foundation
 
-Phase 1 plus the minimal runnable Phase 2 enrichment described in the earlier design packs, now
-normalized toward the `design-pack-v7` structure-first plan.
+`agent-foundation` is a minimal agent runtime foundation focused on four things:
 
-It provides:
+- durable task artifacts
+- a canonical Thin KB backed by JSON source files
+- replayable evaluation and release gates
+- runtime hardening for state, indexes, ledgers, and recovery
+
+## What Is In The Repository
 
 - `artifact_api`: file-first task artifact service with validated state transitions
-- `thin_kb_api`: canonical Thin KB service backed by JSON files and SQLite FTS5
-- `thin_kb_api` Phase 2 enrichment: document/code ingestion, hybrid retrieval, writeback refinement
-- `packages/core/eval` + `packages/core/pipeline`: frozen corpora runner, report generation, and Dagster asset orchestration
-- `openclaw/plugin_adapter`: thin TypeScript adapter for OpenClaw tools
-- `tests`: unit and end-to-end coverage for the happy path and blocked transition path
+- `thin_kb_api`: canonical Thin KB service backed by JSON plus SQLite FTS/index state
+- `packages/core/eval`: frozen corpora, replay, threshold checks, baseline comparison, reporting
+- `packages/core/pipeline`: Dagster assets for evaluation and reporting
+- `openclaw/plugin_adapter`: TypeScript adapter for tool-facing integration
 
-## Layout
+## Runtime Layout Policy
 
-```text
-apps/
-  artifact_api/
-  thin_kb_api/
-packages/
-  core/
-    schemas/
-    storage/
-    eval/
-    pipeline/
-contracts/
-  openapi/
-evals/
-  datasets/
-  corpora/
-generated/
-  reports/
-openclaw/
-  plugin_adapter/
-tests/
+This repository separates source code from runtime state.
+
+By default, runtime roots live outside the repo using host OS state directories. The runtime policy is implemented in `packages/core/config.py`.
+
+Important consequences:
+
+- do not rely on repo-local `tasks/`, `kb/`, `observability/`, `reports/`, or `shadow_runs/`
+- canonical KB JSON lives under `${STATE_ROOT}/kb/canonical/`
+- SQLite manifest/index data lives under `${STATE_ROOT}/indexes/sqlite/manifest.sqlite3`
+- ledgers, replay artifacts, and backups live under `${STATE_ROOT}/ledgers/`, `${STATE_ROOT}/replay/`, and `${STATE_ROOT}/backups/`
+
+Bootstrap the runtime layout:
+
+```bash
+python -m apps.cli.main bootstrap-runtime
 ```
 
-## Local Run
+Inspect or prune legacy repo-local runtime directories:
 
-Python 3.11 recommended:
+```bash
+python -m apps.cli.main cleanup-runtime
+python -m apps.cli.main cleanup-runtime --remove-empty
+```
+
+## Quick Start
+
+Python 3.11 is recommended.
 
 ```bash
 uv venv --python 3.11 .venv
 source .venv/bin/activate
 uv pip install '.[dev]'
+python -m apps.cli.main bootstrap-runtime
 uvicorn apps.artifact_api.main:app --reload --port 8081
 uvicorn apps.thin_kb_api.main:app --reload --port 8082
-pytest
+pytest -q
 ```
 
-Node 22+ for the plugin:
+For the plugin adapter:
 
 ```bash
 cd openclaw/plugin_adapter
@@ -60,97 +66,121 @@ npm test
 
 ## Environment
 
-- `AGENT_FOUNDATION_STATE_ROOT`: base runtime root. Defaults outside the source repo using the host OS state directory.
-- `AGENT_FOUNDATION_TASKS_ROOT`: overrides the task artifact root. Defaults to `${STATE_ROOT}/tasks`.
-- `AGENT_FOUNDATION_KB_ROOT`: overrides the KB root. Defaults to `${STATE_ROOT}/kb`.
-- `AGENT_FOUNDATION_KB_DB`: overrides the KB SQLite manifest path. Defaults to `${KB_ROOT}/manifest.sqlite3`.
-- `ARTIFACT_API_BASE_URL`: default base URL used by the plugin. Defaults to `http://127.0.0.1:8081`.
-- `THIN_KB_API_BASE_URL`: default base URL used by the plugin. Defaults to `http://127.0.0.1:8082`.
-- `REQUEST_TIMEOUT_MS`: plugin HTTP timeout in milliseconds. Defaults to `5000`.
-- `AGENT_FOUNDATION_OBSERVABILITY_ROOT`: root for JSONL events and metrics. Defaults to `${STATE_ROOT}/observability`.
-- `AGENT_FOUNDATION_EVALS_ROOT`: overrides the frozen corpora root. Defaults to `./evals`.
-- `AGENT_FOUNDATION_REPORTS_ROOT`: overrides generated reports. Defaults to `./generated/reports`.
-- `OPENCLAW_RUN_ID`: optional run identifier forwarded by the plugin as `x-run-id`.
+- `AGENT_FOUNDATION_STATE_ROOT`: base runtime state root
+- `AGENT_FOUNDATION_WORKSPACE_ROOT`: workspace root for worktrees, sandboxes, and temp agent work
+- `AGENT_FOUNDATION_TASKS_ROOT`: task artifact root; defaults to `${STATE_ROOT}/tasks`
+- `AGENT_FOUNDATION_KB_ROOT`: KB root; defaults to `${STATE_ROOT}/kb`
+- `AGENT_FOUNDATION_KB_DB`: manifest DB path; defaults to `${STATE_ROOT}/indexes/sqlite/manifest.sqlite3`
+- `AGENT_FOUNDATION_OBSERVABILITY_ROOT`: observability root; defaults to `${STATE_ROOT}/observability`
+- `AGENT_FOUNDATION_EVALS_ROOT`: frozen corpora root; defaults to `./evals`
+- `AGENT_FOUNDATION_GENERATED_ROOT`: generated convenience outputs; defaults to `./generated`
+- `AGENT_FOUNDATION_REPORTS_ROOT`: report output root; defaults to `${GENERATED_ROOT}/reports`
+- `AGENT_FOUNDATION_SHADOW_RUNS_ROOT`: replay workspace root; defaults to `${STATE_ROOT}/replay/captured_runs`
+- `ARTIFACT_API_BASE_URL`: plugin base URL for the artifact service; defaults to `http://127.0.0.1:8081`
+- `THIN_KB_API_BASE_URL`: plugin base URL for the KB service; defaults to `http://127.0.0.1:8082`
+- `REQUEST_TIMEOUT_MS`: plugin HTTP timeout in milliseconds; defaults to `5000`
+- `OPENCLAW_RUN_ID`: optional run identifier forwarded by the plugin as `x-run-id`
 
-See [`docs/MIGRATION_V7_REPO.md`](./docs/MIGRATION_V7_REPO.md) for the full path migration table.
+## Frozen Contracts And Source Of Truth
 
-## Contract Freeze
+The public contract freeze is represented by:
 
-- Public API compatibility policy: [`docs/API_COMPATIBILITY.md`](./docs/API_COMPATIBILITY.md)
-- Dependency notes: [`docs/DEPENDENCIES.md`](./docs/DEPENDENCIES.md)
-- Dagster ADR: [`docs/adr/ADR-007-dagster-eval-orchestration.md`](./docs/adr/ADR-007-dagster-eval-orchestration.md)
-- Frozen OpenAPI snapshots:
-  - `contracts/openapi/artifact_api.v1.json`
-  - `contracts/openapi/thin_kb_api.v1.json`
-- Normative file index: [`NORMATIVE_FILES.md`](./NORMATIVE_FILES.md)
+- `contracts/openapi/artifact_api.v1.json`
+- `contracts/openapi/thin_kb_api.v1.json`
+- `contracts/jsonschema/*.json`
+- `docs/API_COMPATIBILITY.md`
+- `NORMATIVE_FILES.md`
 
-## Phase 2 Endpoints
+`generated/` is non-normative convenience output and may be regenerated. Contract drift gates compare runtime-generated contracts to frozen snapshots under `contracts/`.
 
-- `POST /v1/kb/ingest/document`: ingest file or inline document content into reviewable extract bundles
-- `POST /v1/kb/ingest/code`: ingest file or inline code content with Python AST / optional Tree-sitter extraction
-- `POST /v1/kb/search/hybrid`: search canonical Thin KB objects plus extracted chunks
-- `POST /v1/kb/writeback/refine`: refine an `experience-packet.json` into candidate canonical objects
-
-Optional Phase 2 dependencies can be installed with:
+Regenerate and verify contract artifacts:
 
 ```bash
-uv pip install '.[phase2]'
+make contracts-drift
 ```
 
-Wave 3 / Wave 4 dependencies can be installed with:
+## Evaluation, Replay, And Release Gate
+
+Frozen corpora live under `evals/`.
+
+Run replay only:
 
 ```bash
-uv pip install '.[phase3]'
+python -m apps.cli.main replay
 ```
 
-## Evaluation And Shadow Mode
-
-- Frozen corpora live under `evals/datasets/gold/`, `evals/corpora/replay/`, and `evals/corpora/shadow/`
-- Eval reports are written under `generated/reports/eval/<run_id>/`
-- Shadow outputs are written under `generated/reports/shadow/<run_id>/`
-- Dagster definitions live in `packages/core/pipeline/dagster_defs.py`
-
-Run the frozen eval corpora directly:
+Run full eval:
 
 ```bash
-.venv/bin/python scripts/generate_eval_report.py
+python -m apps.cli.main eval
 ```
 
-Materialize the Dagster assets:
+Run release gate:
 
 ```bash
-.venv/bin/python scripts/materialize_eval_assets.py --run-id nightly-smoke
+python -m apps.cli.main release-check --profile smoke
 ```
 
-Run the shadow pilot manifest:
+Materialize Dagster assets:
 
 ```bash
-.venv/bin/python scripts/run_shadow_pilot.py --run-id shadow-smoke
+python scripts/materialize_eval_assets.py --run-id nightly-smoke
 ```
 
-Compare two stored eval runs:
+Run local Python validation:
 
 ```bash
-.venv/bin/python scripts/compare_eval_runs.py baseline-run candidate-run
+make validate-local
 ```
 
-## Thin KB Index Rebuild
-
-Rebuild the manifest and FTS index from the JSON source of truth:
+Run plugin validation:
 
 ```bash
-python -m packages.core.storage.thin_kb_store
+make plugin-check
 ```
 
-## Recovery And Metrics
+## Recovery And Backup
 
-- Backup runbook: [`docs/RECOVERY_RUNBOOK.md`](./docs/RECOVERY_RUNBOOK.md)
-- Observability notes: [`docs/OBSERVABILITY.md`](./docs/OBSERVABILITY.md)
-- Evaluation notes: [`docs/EVALUATION.md`](./docs/EVALUATION.md)
-- Shadow mode notes: [`docs/SHADOW_MODE.md`](./docs/SHADOW_MODE.md)
-- Backup archive:
-  - `.venv/bin/python scripts/backup_workspace.py --output backups/agent-foundation.tar.gz`
-- Restore archive:
-  - `.venv/bin/python scripts/restore_workspace.py --archive backups/agent-foundation.tar.gz --tasks-root restored/tasks --kb-root restored/kb`
-- Metrics report:
-  - `.venv/bin/python scripts/generate_metrics_report.py`
+Create a backup archive of the configured state root:
+
+```bash
+python -m apps.cli.main backup-state --output /tmp/agent-foundation-backup.tar.gz
+```
+
+Restore into the configured state root:
+
+```bash
+python -m apps.cli.main restore-state --archive /tmp/agent-foundation-backup.tar.gz
+```
+
+See `docs/RECOVERY_RUNBOOK.md` for the full recovery procedure.
+
+## Repository Layout
+
+```text
+apps/
+  artifact_api/
+  cli/
+  thin_kb_api/
+packages/
+  core/
+    eval/
+    events/
+    pipeline/
+    schemas/
+    storage/
+contracts/
+  openapi/
+  jsonschema/
+evals/
+  corpora/
+  datasets/
+generated/
+openclaw/
+  plugin_adapter/
+tests/
+```
+
+## For Coding Agents
+
+See `AGENTS.md` at the repository root for machine-oriented guidance about normative files, runtime path constraints, required validation commands, storage invariants, and common pitfalls when modifying this repository.

@@ -1,6 +1,14 @@
 from __future__ import annotations
 
-from packages.core.eval.gates import _directory_matches, build_release_check_report, evaluate_comparison_thresholds, evaluate_eval_thresholds
+import json
+
+from packages.core.eval.gates import (
+    _directory_matches,
+    build_release_check_report,
+    check_contract_drift,
+    evaluate_comparison_thresholds,
+    evaluate_eval_thresholds,
+)
 from packages.core.schemas import ComparisonReport, EvalRun, EvalThresholds, MetricThreshold, ReplayCaseResult, RetrievalCaseResult, WorkflowMetrics
 
 
@@ -86,3 +94,64 @@ def test_directory_matches_rejects_stale_extra_files(tmp_path):
     (root / "stale.json").write_text('{"stale": true}\n', encoding="utf-8")
 
     assert _directory_matches({"artifact.json": {"ok": True}}, root) is False
+
+
+def test_check_contract_drift_ignores_generated_drift(tmp_path, monkeypatch):
+    contracts = tmp_path / "contracts"
+    generated = tmp_path / "generated"
+    expected_openapi = {"artifact_api.v1.json": {"openapi": "3.1.0"}}
+    expected_jsonschema = {"artifact_models.v1.json": {"bundle": "artifact_models.v1"}}
+
+    _write_contract_tree(contracts / "openapi", expected_openapi)
+    _write_contract_tree(contracts / "jsonschema", expected_jsonschema)
+    _write_contract_tree(generated / "openapi", {"artifact_api.v1.json": {"openapi": "stale"}})
+    _write_contract_tree(generated / "jsonschema", {"artifact_models.v1.json": {"bundle": "stale"}})
+
+    monkeypatch.setattr("packages.core.eval.gates.contracts_root", lambda: contracts)
+    monkeypatch.setattr("packages.core.eval.gates.build_openapi_contracts", lambda: expected_openapi)
+    monkeypatch.setattr("packages.core.eval.gates.build_jsonschema_contracts", lambda: expected_jsonschema)
+
+    assert check_contract_drift() is False
+
+
+def test_check_contract_drift_rejects_contract_content_mismatch(tmp_path, monkeypatch):
+    contracts = tmp_path / "contracts"
+    expected_openapi = {"artifact_api.v1.json": {"openapi": "3.1.0"}}
+    expected_jsonschema = {"artifact_models.v1.json": {"bundle": "artifact_models.v1"}}
+
+    _write_contract_tree(contracts / "openapi", {"artifact_api.v1.json": {"openapi": "stale"}})
+    _write_contract_tree(contracts / "jsonschema", expected_jsonschema)
+
+    monkeypatch.setattr("packages.core.eval.gates.contracts_root", lambda: contracts)
+    monkeypatch.setattr("packages.core.eval.gates.build_openapi_contracts", lambda: expected_openapi)
+    monkeypatch.setattr("packages.core.eval.gates.build_jsonschema_contracts", lambda: expected_jsonschema)
+
+    assert check_contract_drift() is True
+
+
+def test_check_contract_drift_rejects_missing_or_extra_contract_files(tmp_path, monkeypatch):
+    contracts = tmp_path / "contracts"
+    expected_openapi = {"artifact_api.v1.json": {"openapi": "3.1.0"}}
+    expected_jsonschema = {"artifact_models.v1.json": {"bundle": "artifact_models.v1"}}
+
+    _write_contract_tree(contracts / "openapi", expected_openapi)
+    _write_contract_tree(
+        contracts / "jsonschema",
+        {
+            "artifact_models.v1.json": {"bundle": "artifact_models.v1"},
+            "stale.json": {"bundle": "stale"},
+        },
+    )
+    (contracts / "openapi" / "artifact_api.v1.json").unlink()
+
+    monkeypatch.setattr("packages.core.eval.gates.contracts_root", lambda: contracts)
+    monkeypatch.setattr("packages.core.eval.gates.build_openapi_contracts", lambda: expected_openapi)
+    monkeypatch.setattr("packages.core.eval.gates.build_jsonschema_contracts", lambda: expected_jsonschema)
+
+    assert check_contract_drift() is True
+
+
+def _write_contract_tree(root, payloads):
+    root.mkdir(parents=True, exist_ok=True)
+    for name, payload in payloads.items():
+        (root / name).write_text(json.dumps(payload), encoding="utf-8")
