@@ -1,0 +1,5 @@
+{"case_id":"g-fact-002","kind":"fact_lookup","query":"Hybrid complements exact","expected_ids":["claim-eval-fts"],"version":"1.0.0","domain_tags":["retrieval"],"allow_abstain":false}
+{"case_id":"g-procedure-002","kind":"procedure","query":"restore a snapshot","expected_ids":["procedure-eval-restore"],"version":"1.0.0","domain_tags":["recovery"],"allow_abstain":false}
+{"case_id":"g-troubleshooting-002","kind":"troubleshooting","query":"missing manifest after restore","expected_ids":[],"allow_abstain":true}
+{"case_id":"g-design-002","kind":"design_support","query":"hybrid retrieval complements exact search","expected_ids":["claim-eval-fts"],"version":"1.0.0","domain_tags":["retrieval"],"allow_abstain":false}
+{"case_id":"g-writeback-002","kind":"writeback_promotion","query":"restore backup and rebuild the index","expected_ids":["procedure-eval-restore"],"version":"1.0.0","domain_tags":["recovery"],"allow_abstain":false}

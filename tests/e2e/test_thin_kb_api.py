@@ -35,6 +35,12 @@ def make_client(tmp_path):
     return TestClient(app, headers=AGENT_HEADERS)
 
 
+def test_thin_kb_api_health_and_ready(tmp_path):
+    client = make_client(tmp_path)
+    assert client.get("/healthz").json() == {"status": "ok"}
+    assert client.get("/readyz").json() == {"status": "ready"}
+
+
 def test_thin_kb_api_search_get_and_related(tmp_path):
     client = make_client(tmp_path)
 

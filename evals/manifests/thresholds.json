@@ -1,0 +1,91 @@
+{
+  "profiles": {
+    "smoke": {
+      "min_gold_cases": 5,
+      "min_replay_cases": 5,
+      "require_baseline": false,
+      "retrieval": [
+        {
+          "metric": "hit_at_1",
+          "op": ">=",
+          "value": 0.4
+        },
+        {
+          "metric": "hit_at_3",
+          "op": ">=",
+          "value": 0.5
+        },
+        {
+          "metric": "wrong_version_rate",
+          "op": "<=",
+          "value": 1.0
+        }
+      ],
+      "workflow": [
+        {
+          "metric": "design_acceptance_rate",
+          "op": ">=",
+          "value": 0.5
+        },
+        {
+          "metric": "writeback_promotion_rate",
+          "op": ">=",
+          "value": 0.4
+        },
+        {
+          "metric": "validation_failure_rate",
+          "op": "<=",
+          "value": 1.0
+        }
+      ],
+      "max_regressed_case_count": 0,
+      "max_new_critical_failures": 0
+    },
+    "full": {
+      "min_gold_cases": 10,
+      "min_replay_cases": 11,
+      "require_baseline": false,
+      "retrieval": [
+        {
+          "metric": "hit_at_1",
+          "op": ">=",
+          "value": 0.45
+        },
+        {
+          "metric": "hit_at_3",
+          "op": ">=",
+          "value": 0.55
+        },
+        {
+          "metric": "abstain_precision",
+          "op": ">=",
+          "value": 0.5
+        },
+        {
+          "metric": "wrong_version_rate",
+          "op": "<=",
+          "value": 1.0
+        }
+      ],
+      "workflow": [
+        {
+          "metric": "design_acceptance_rate",
+          "op": ">=",
+          "value": 0.5
+        },
+        {
+          "metric": "writeback_promotion_rate",
+          "op": ">=",
+          "value": 0.4
+        },
+        {
+          "metric": "human_intervention_rate",
+          "op": "<=",
+          "value": 1.0
+        }
+      ],
+      "max_regressed_case_count": 0,
+      "max_new_critical_failures": 0
+    }
+  }
+}

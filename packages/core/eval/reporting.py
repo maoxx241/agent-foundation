@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from packages.core.config import reports_root
-from packages.core.schemas import ComparisonReport, EvalRun
+from packages.core.schemas import ComparisonReport, EvalRun, ReleaseCheckReport, ReplayRunReport
 from packages.core.storage.fs_utils import ensure_dir, utc_now, write_json_atomic, write_text_atomic
 from .metrics import compare_metric_maps
 
@@ -23,6 +23,25 @@ def write_eval_run(run: EvalRun, reports_root: Path | None = None) -> Path:
     write_json_atomic(report_dir / "retrieval-results.json", [item.model_dump(mode="json") for item in run.retrieval_results])
     write_json_atomic(report_dir / "replay-results.json", [item.model_dump(mode="json") for item in run.replay_results])
     write_text_atomic(report_dir / "report.md", write_markdown_report(EvalRun.model_validate(payload)))
+    write_replay_run_report(run, reports_root)
+    return report_dir
+
+
+def write_replay_run_report(run: EvalRun, reports_root: Path | None = None) -> Path:
+    reports_root = reports_root or default_reports_root()
+    report_dir = reports_root / "replay" / run.run_id
+    ensure_dir(report_dir)
+    payload = ReplayRunReport(
+        run_id=run.run_id,
+        generated_at=run.generated_at,
+        replay_results=run.replay_results,
+        workflow_metrics=run.workflow_metrics,
+        ok=all(item.ok for item in run.replay_results),
+        report_dir=str(report_dir),
+    ).model_dump(mode="json")
+    write_json_atomic(report_dir / "run.json", payload)
+    write_json_atomic(report_dir / "replay-results.json", payload["replay_results"])
+    write_text_atomic(report_dir / "report.md", write_replay_markdown_report(ReplayRunReport.model_validate(payload)))
     return report_dir
 
 
@@ -37,6 +56,37 @@ def write_markdown_report(run: EvalRun) -> str:
         "## Workflow Metrics\n\n"
         f"{json.dumps(workflow, indent=2, sort_keys=True)}\n"
     )
+
+
+def write_replay_markdown_report(run: ReplayRunReport) -> str:
+    workflow = run.workflow_metrics.model_dump(mode="json")
+    return (
+        f"# Replay Report {run.run_id}\n\n"
+        f"Generated at: {run.generated_at}\n\n"
+        f"Replay OK: {run.ok}\n\n"
+        "## Workflow Metrics\n\n"
+        f"{json.dumps(workflow, indent=2, sort_keys=True)}\n"
+    )
+
+
+def write_release_check_report(report: ReleaseCheckReport, reports_root: Path | None = None) -> Path:
+    reports_root = reports_root or default_reports_root()
+    report_dir = reports_root / "release-check" / report.run_id
+    ensure_dir(report_dir)
+    payload = report.model_dump(mode="json")
+    write_json_atomic(report_dir / "report.json", payload)
+    write_text_atomic(
+        report_dir / "report.md",
+        (
+            f"# Release Check {report.run_id}\n\n"
+            f"Status: {report.overall_status}\n\n"
+            f"Contract drift: {report.contract_drift}\n\n"
+            f"Replay OK: {report.replay_ok}\n\n"
+            f"Eval OK: {report.eval_ok}\n\n"
+            f"Threshold failures: {len(report.threshold_failures)}\n"
+        ),
+    )
+    return report_dir
 
 
 def compare_runs(
@@ -68,6 +118,8 @@ def compare_runs(
         metric_deltas={**retrieval.metric_deltas, **workflow.metric_deltas},
         regressed_case_ids=regressed_case_ids,
         new_critical_failures=new_critical_failures,
+        threshold_failures=[],
+        baseline_missing=False,
         overall_status=(
             "regression"
             if regressed_case_ids

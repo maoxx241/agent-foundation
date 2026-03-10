@@ -18,15 +18,24 @@ def backup_workspace(
     tasks_root: Path,
     kb_root: Path,
     output_path: Path,
+    indexes_root: Optional[Path] = None,
+    ledgers_root: Optional[Path] = None,
+    replay_root: Optional[Path] = None,
+    backups_root: Optional[Path] = None,
     observability_root: Optional[Path] = None,
 ) -> dict[str, Any]:
     tasks_root = tasks_root.resolve()
     kb_root = kb_root.resolve()
     output_path = output_path.resolve()
+    indexes_root = indexes_root.resolve() if indexes_root is not None else None
+    ledgers_root = ledgers_root.resolve() if ledgers_root is not None else None
+    replay_root = replay_root.resolve() if replay_root is not None else None
+    backups_root = backups_root.resolve() if backups_root is not None else None
+    manifest_db_path = _manifest_db_path(kb_root=kb_root, indexes_root=indexes_root)
     required = {
         "tasks": tasks_root,
         "kb/canonical": kb_root / "canonical",
-        "kb/manifest.sqlite3": kb_root / "manifest.sqlite3",
+        str(_archive_name_for_path(manifest_db_path, kb_root, indexes_root)): manifest_db_path,
     }
     missing = [name for name, path in required.items() if not path.exists()]
     if missing:
@@ -36,6 +45,14 @@ def backup_workspace(
         ("tasks", tasks_root),
         ("kb", kb_root),
     ]
+    if indexes_root is not None and indexes_root.exists():
+        sections.append(("indexes", indexes_root))
+    if ledgers_root is not None and ledgers_root.exists():
+        sections.append(("ledgers", ledgers_root))
+    if replay_root is not None and replay_root.exists():
+        sections.append(("replay", replay_root))
+    if backups_root is not None and backups_root.exists() and not output_path.is_relative_to(backups_root):
+        sections.append(("backups", backups_root))
     if observability_root is not None and observability_root.exists():
         sections.append(("observability", observability_root.resolve()))
 
@@ -70,6 +87,10 @@ def restore_workspace(
     archive_path: Path,
     tasks_root: Path,
     kb_root: Path,
+    indexes_root: Optional[Path] = None,
+    ledgers_root: Optional[Path] = None,
+    replay_root: Optional[Path] = None,
+    backups_root: Optional[Path] = None,
     observability_root: Optional[Path] = None,
 ) -> dict[str, Any]:
     archive_path = archive_path.resolve()
@@ -90,10 +111,19 @@ def restore_workspace(
 
         _replace_tree(staging_root / "tasks", tasks_root)
         _replace_tree(staging_root / "kb", kb_root)
+        if indexes_root is not None and (staging_root / "indexes").exists():
+            _replace_tree(staging_root / "indexes", indexes_root)
+        if ledgers_root is not None and (staging_root / "ledgers").exists():
+            _replace_tree(staging_root / "ledgers", ledgers_root)
+        if replay_root is not None and (staging_root / "replay").exists():
+            _replace_tree(staging_root / "replay", replay_root)
+        if backups_root is not None and (staging_root / "backups").exists():
+            _replace_tree(staging_root / "backups", backups_root)
         if observability_root is not None and (staging_root / "observability").exists():
             _replace_tree(staging_root / "observability", observability_root)
 
-    store = ThinKBStore(kb_root=kb_root, db_path=kb_root / "manifest.sqlite3")
+    db_path = _manifest_db_path(kb_root=kb_root, indexes_root=indexes_root)
+    store = ThinKBStore(kb_root=kb_root, db_path=db_path)
     rebuilt = store.rebuild_index()
     mismatch = detect_manifest_mismatch(kb_root=kb_root, db_path=store.db_path)
     if mismatch["missing_in_manifest"] or mismatch["missing_on_disk"]:
@@ -103,6 +133,7 @@ def restore_workspace(
         "reindexed_objects": rebuilt,
         "tasks_root": str(tasks_root),
         "kb_root": str(kb_root),
+        "db_path": str(db_path),
     }
 
 
@@ -140,3 +171,17 @@ def _safe_extractall(archive: tarfile.TarFile, destination: Path) -> None:
         if not str(target).startswith(str(destination)):
             raise ValidationError(f"Unsafe archive member path: {member.name}")
     archive.extractall(destination)
+
+
+def _manifest_db_path(*, kb_root: Path, indexes_root: Optional[Path]) -> Path:
+    if indexes_root is not None:
+        candidate = indexes_root / "sqlite" / "manifest.sqlite3"
+        if candidate.exists() or not (kb_root / "manifest.sqlite3").exists():
+            return candidate
+    return kb_root / "manifest.sqlite3"
+
+
+def _archive_name_for_path(path: Path, kb_root: Path, indexes_root: Optional[Path]) -> str:
+    if indexes_root is not None and path.is_relative_to(indexes_root):
+        return f"indexes/{path.relative_to(indexes_root)}"
+    return f"kb/{path.relative_to(kb_root)}"

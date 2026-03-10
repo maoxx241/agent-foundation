@@ -1,0 +1,1884 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "bundle": "artifact_models.v1",
+  "models": {
+    "ADR": {
+      "additionalProperties": false,
+      "properties": {
+        "alternatives": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Alternatives",
+          "type": "array"
+        },
+        "artifact_schema_version": {
+          "default": "1.0",
+          "title": "Artifact Schema Version",
+          "type": "string"
+        },
+        "consequences": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Consequences",
+          "type": "array"
+        },
+        "context": {
+          "title": "Context",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "decision": {
+          "title": "Decision",
+          "type": "string"
+        },
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "tradeoffs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tradeoffs",
+          "type": "array"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "created_at",
+        "updated_at",
+        "task_id",
+        "title",
+        "context",
+        "decision"
+      ],
+      "title": "ADR",
+      "type": "object"
+    },
+    "DesignReview": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_schema_version": {
+          "default": "1.0",
+          "title": "Artifact Schema Version",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "major_issues": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Major Issues",
+          "type": "array"
+        },
+        "minor_issues": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Minor Issues",
+          "type": "array"
+        },
+        "required_changes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Required Changes",
+          "type": "array"
+        },
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        },
+        "unresolved_risks": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Unresolved Risks",
+          "type": "array"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        },
+        "verdict": {
+          "enum": [
+            "approve",
+            "approve_with_conditions",
+            "reject"
+          ],
+          "title": "Verdict",
+          "type": "string"
+        }
+      },
+      "required": [
+        "created_at",
+        "updated_at",
+        "task_id",
+        "verdict"
+      ],
+      "title": "DesignReview",
+      "type": "object"
+    },
+    "DesignSpec": {
+      "$defs": {
+        "DesignOption": {
+          "additionalProperties": false,
+          "properties": {
+            "assumptions": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Assumptions",
+              "type": "array"
+            },
+            "name": {
+              "title": "Name",
+              "type": "string"
+            },
+            "required_tests": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Required Tests",
+              "type": "array"
+            },
+            "risks": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Risks",
+              "type": "array"
+            },
+            "summary": {
+              "title": "Summary",
+              "type": "string"
+            },
+            "tradeoffs": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Tradeoffs",
+              "type": "array"
+            }
+          },
+          "required": [
+            "name",
+            "summary"
+          ],
+          "title": "DesignOption",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "artifact_schema_version": {
+          "default": "1.0",
+          "title": "Artifact Schema Version",
+          "type": "string"
+        },
+        "assumptions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Assumptions",
+          "type": "array"
+        },
+        "constraints": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Constraints",
+          "type": "array"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "invariants": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Invariants",
+          "type": "array"
+        },
+        "objective": {
+          "title": "Objective",
+          "type": "string"
+        },
+        "open_questions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Open Questions",
+          "type": "array"
+        },
+        "options": {
+          "items": {
+            "$ref": "#/$defs/DesignOption"
+          },
+          "title": "Options",
+          "type": "array"
+        },
+        "selected_option": {
+          "title": "Selected Option",
+          "type": "string"
+        },
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "created_at",
+        "updated_at",
+        "task_id",
+        "objective",
+        "selected_option"
+      ],
+      "title": "DesignSpec",
+      "type": "object"
+    },
+    "EvidencePack": {
+      "$defs": {
+        "EnvTuple": {
+          "additionalProperties": false,
+          "properties": {
+            "branch": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Branch"
+            },
+            "cann": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Cann"
+            },
+            "commit": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Commit"
+            },
+            "driver": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Driver"
+            },
+            "extra": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "title": "Extra",
+              "type": "object"
+            },
+            "hardware": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Hardware"
+            },
+            "os": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Os"
+            },
+            "project": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Project"
+            },
+            "python": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Python"
+            },
+            "repo": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Repo"
+            },
+            "torch": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Torch"
+            },
+            "torch_npu": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Torch Npu"
+            },
+            "vllm": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Vllm"
+            },
+            "vllm_ascend": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Vllm Ascend"
+            }
+          },
+          "title": "EnvTuple",
+          "type": "object"
+        },
+        "Reference": {
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "title": "Id",
+              "type": "string"
+            },
+            "notes": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Notes"
+            },
+            "ref_type": {
+              "enum": [
+                "artifact",
+                "memory",
+                "claim",
+                "procedure",
+                "case",
+                "decision",
+                "source",
+                "extract",
+                "external"
+              ],
+              "title": "Ref Type",
+              "type": "string"
+            },
+            "title": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Title"
+            },
+            "uri": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Uri"
+            }
+          },
+          "required": [
+            "id",
+            "ref_type"
+          ],
+          "title": "Reference",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "artifact_schema_version": {
+          "default": "1.0",
+          "title": "Artifact Schema Version",
+          "type": "string"
+        },
+        "claims": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Claims",
+          "type": "array"
+        },
+        "conflicts": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Conflicts",
+          "type": "array"
+        },
+        "constraints": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Constraints",
+          "type": "array"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "env": {
+          "$ref": "#/$defs/EnvTuple"
+        },
+        "freshness_warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Freshness Warnings",
+          "type": "array"
+        },
+        "gaps": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Gaps",
+          "type": "array"
+        },
+        "relevant_refs": {
+          "items": {
+            "$ref": "#/$defs/Reference"
+          },
+          "title": "Relevant Refs",
+          "type": "array"
+        },
+        "risks": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Risks",
+          "type": "array"
+        },
+        "summary": {
+          "title": "Summary",
+          "type": "string"
+        },
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "created_at",
+        "updated_at",
+        "task_id",
+        "summary"
+      ],
+      "title": "EvidencePack",
+      "type": "object"
+    },
+    "ExperiencePacket": {
+      "$defs": {
+        "EnvTuple": {
+          "additionalProperties": false,
+          "properties": {
+            "branch": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Branch"
+            },
+            "cann": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Cann"
+            },
+            "commit": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Commit"
+            },
+            "driver": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Driver"
+            },
+            "extra": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "title": "Extra",
+              "type": "object"
+            },
+            "hardware": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Hardware"
+            },
+            "os": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Os"
+            },
+            "project": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Project"
+            },
+            "python": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Python"
+            },
+            "repo": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Repo"
+            },
+            "torch": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Torch"
+            },
+            "torch_npu": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Torch Npu"
+            },
+            "vllm": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Vllm"
+            },
+            "vllm_ascend": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Vllm Ascend"
+            }
+          },
+          "title": "EnvTuple",
+          "type": "object"
+        },
+        "Reference": {
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "title": "Id",
+              "type": "string"
+            },
+            "notes": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Notes"
+            },
+            "ref_type": {
+              "enum": [
+                "artifact",
+                "memory",
+                "claim",
+                "procedure",
+                "case",
+                "decision",
+                "source",
+                "extract",
+                "external"
+              ],
+              "title": "Ref Type",
+              "type": "string"
+            },
+            "title": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Title"
+            },
+            "uri": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Uri"
+            }
+          },
+          "required": [
+            "id",
+            "ref_type"
+          ],
+          "title": "Reference",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "artifact_schema_version": {
+          "default": "1.0",
+          "title": "Artifact Schema Version",
+          "type": "string"
+        },
+        "candidate_cases": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Candidate Cases",
+          "type": "array"
+        },
+        "candidate_claims": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Candidate Claims",
+          "type": "array"
+        },
+        "candidate_decisions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Candidate Decisions",
+          "type": "array"
+        },
+        "candidate_procedures": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Candidate Procedures",
+          "type": "array"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "env": {
+          "$ref": "#/$defs/EnvTuple"
+        },
+        "fix_summary": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fix Summary"
+        },
+        "metadata": {
+          "additionalProperties": true,
+          "title": "Metadata",
+          "type": "object"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "related_artifacts": {
+          "items": {
+            "$ref": "#/$defs/Reference"
+          },
+          "title": "Related Artifacts",
+          "type": "array"
+        },
+        "root_cause": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Root Cause"
+        },
+        "summary": {
+          "title": "Summary",
+          "type": "string"
+        },
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        },
+        "validation_summary": {
+          "title": "Validation Summary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "created_at",
+        "updated_at",
+        "task_id",
+        "project_id",
+        "summary",
+        "validation_summary"
+      ],
+      "title": "ExperiencePacket",
+      "type": "object"
+    },
+    "ImplReview": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_schema_version": {
+          "default": "1.0",
+          "title": "Artifact Schema Version",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "implementation_risks": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Implementation Risks",
+          "type": "array"
+        },
+        "required_fixes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Required Fixes",
+          "type": "array"
+        },
+        "spec_deviations": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Spec Deviations",
+          "type": "array"
+        },
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        },
+        "test_coverage_concerns": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Test Coverage Concerns",
+          "type": "array"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        },
+        "verdict": {
+          "enum": [
+            "approve",
+            "approve_with_conditions",
+            "reject"
+          ],
+          "title": "Verdict",
+          "type": "string"
+        }
+      },
+      "required": [
+        "created_at",
+        "updated_at",
+        "task_id",
+        "verdict"
+      ],
+      "title": "ImplReview",
+      "type": "object"
+    },
+    "SelfTestReport": {
+      "$defs": {
+        "Reference": {
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "title": "Id",
+              "type": "string"
+            },
+            "notes": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Notes"
+            },
+            "ref_type": {
+              "enum": [
+                "artifact",
+                "memory",
+                "claim",
+                "procedure",
+                "case",
+                "decision",
+                "source",
+                "extract",
+                "external"
+              ],
+              "title": "Ref Type",
+              "type": "string"
+            },
+            "title": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Title"
+            },
+            "uri": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Uri"
+            }
+          },
+          "required": [
+            "id",
+            "ref_type"
+          ],
+          "title": "Reference",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "artifact_schema_version": {
+          "default": "1.0",
+          "title": "Artifact Schema Version",
+          "type": "string"
+        },
+        "artifacts": {
+          "items": {
+            "$ref": "#/$defs/Reference"
+          },
+          "title": "Artifacts",
+          "type": "array"
+        },
+        "commands_run": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Commands Run",
+          "type": "array"
+        },
+        "covered_scope": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Covered Scope",
+          "type": "array"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "known_gaps": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Known Gaps",
+          "type": "array"
+        },
+        "passed": {
+          "title": "Passed",
+          "type": "boolean"
+        },
+        "summary": {
+          "title": "Summary",
+          "type": "string"
+        },
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "created_at",
+        "updated_at",
+        "task_id",
+        "passed",
+        "summary"
+      ],
+      "title": "SelfTestReport",
+      "type": "object"
+    },
+    "TaskBrief": {
+      "$defs": {
+        "EnvTuple": {
+          "additionalProperties": false,
+          "properties": {
+            "branch": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Branch"
+            },
+            "cann": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Cann"
+            },
+            "commit": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Commit"
+            },
+            "driver": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Driver"
+            },
+            "extra": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "title": "Extra",
+              "type": "object"
+            },
+            "hardware": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Hardware"
+            },
+            "os": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Os"
+            },
+            "project": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Project"
+            },
+            "python": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Python"
+            },
+            "repo": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Repo"
+            },
+            "torch": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Torch"
+            },
+            "torch_npu": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Torch Npu"
+            },
+            "vllm": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Vllm"
+            },
+            "vllm_ascend": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Vllm Ascend"
+            }
+          },
+          "title": "EnvTuple",
+          "type": "object"
+        },
+        "Reference": {
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "title": "Id",
+              "type": "string"
+            },
+            "notes": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Notes"
+            },
+            "ref_type": {
+              "enum": [
+                "artifact",
+                "memory",
+                "claim",
+                "procedure",
+                "case",
+                "decision",
+                "source",
+                "extract",
+                "external"
+              ],
+              "title": "Ref Type",
+              "type": "string"
+            },
+            "title": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Title"
+            },
+            "uri": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Uri"
+            }
+          },
+          "required": [
+            "id",
+            "ref_type"
+          ],
+          "title": "Reference",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "acceptance_hint": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Acceptance Hint"
+        },
+        "artifact_schema_version": {
+          "default": "1.0",
+          "title": "Artifact Schema Version",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "domain_tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Domain Tags",
+          "type": "array"
+        },
+        "env": {
+          "$ref": "#/$defs/EnvTuple"
+        },
+        "goal": {
+          "title": "Goal",
+          "type": "string"
+        },
+        "initial_refs": {
+          "items": {
+            "$ref": "#/$defs/Reference"
+          },
+          "title": "Initial Refs",
+          "type": "array"
+        },
+        "priority": {
+          "default": "medium",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ],
+          "title": "Priority",
+          "type": "string"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "requester": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Requester"
+        },
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "created_at",
+        "updated_at",
+        "task_id",
+        "project_id",
+        "title",
+        "goal"
+      ],
+      "title": "TaskBrief",
+      "type": "object"
+    },
+    "TaskStateRecord": {
+      "$defs": {
+        "TaskState": {
+          "enum": [
+            "NEW",
+            "EVIDENCE_READY",
+            "DESIGN_APPROVED",
+            "TESTSPEC_FROZEN",
+            "IMPLEMENTED",
+            "IMPL_APPROVED",
+            "VALIDATED",
+            "RELEASED",
+            "WRITTEN_BACK"
+          ],
+          "title": "TaskState",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "artifact_schema_version": {
+          "default": "1.0",
+          "title": "Artifact Schema Version",
+          "type": "string"
+        },
+        "changed_by": {
+          "title": "Changed By",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "previous_state": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TaskState"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "state": {
+          "$ref": "#/$defs/TaskState"
+        },
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "created_at",
+        "updated_at",
+        "task_id",
+        "state",
+        "changed_by"
+      ],
+      "title": "TaskStateRecord",
+      "type": "object"
+    },
+    "TestSpec": {
+      "$defs": {
+        "TestCase": {
+          "additionalProperties": false,
+          "properties": {
+            "category": {
+              "enum": [
+                "functional",
+                "orthogonal",
+                "regression",
+                "compatibility",
+                "performance",
+                "failure_mode"
+              ],
+              "title": "Category",
+              "type": "string"
+            },
+            "expected_outcome": {
+              "title": "Expected Outcome",
+              "type": "string"
+            },
+            "name": {
+              "title": "Name",
+              "type": "string"
+            },
+            "preconditions": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Preconditions",
+              "type": "array"
+            },
+            "purpose": {
+              "title": "Purpose",
+              "type": "string"
+            },
+            "steps": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Steps",
+              "type": "array"
+            }
+          },
+          "required": [
+            "name",
+            "purpose",
+            "category",
+            "expected_outcome"
+          ],
+          "title": "TestCase",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "acceptance_criteria": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Acceptance Criteria",
+          "type": "array"
+        },
+        "artifact_schema_version": {
+          "default": "1.0",
+          "title": "Artifact Schema Version",
+          "type": "string"
+        },
+        "cases": {
+          "items": {
+            "$ref": "#/$defs/TestCase"
+          },
+          "title": "Cases",
+          "type": "array"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "invariants": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Invariants",
+          "type": "array"
+        },
+        "required_artifacts": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Required Artifacts",
+          "type": "array"
+        },
+        "strategy_summary": {
+          "title": "Strategy Summary",
+          "type": "string"
+        },
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "created_at",
+        "updated_at",
+        "task_id",
+        "strategy_summary"
+      ],
+      "title": "TestSpec",
+      "type": "object"
+    },
+    "ValidationReport": {
+      "$defs": {
+        "Reference": {
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "title": "Id",
+              "type": "string"
+            },
+            "notes": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Notes"
+            },
+            "ref_type": {
+              "enum": [
+                "artifact",
+                "memory",
+                "claim",
+                "procedure",
+                "case",
+                "decision",
+                "source",
+                "extract",
+                "external"
+              ],
+              "title": "Ref Type",
+              "type": "string"
+            },
+            "title": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Title"
+            },
+            "uri": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Uri"
+            }
+          },
+          "required": [
+            "id",
+            "ref_type"
+          ],
+          "title": "Reference",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "artifact_schema_version": {
+          "default": "1.0",
+          "title": "Artifact Schema Version",
+          "type": "string"
+        },
+        "artifacts": {
+          "items": {
+            "$ref": "#/$defs/Reference"
+          },
+          "title": "Artifacts",
+          "type": "array"
+        },
+        "compatibility_result": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Compatibility Result"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "findings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Findings",
+          "type": "array"
+        },
+        "functional_result": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Functional Result"
+        },
+        "passed": {
+          "title": "Passed",
+          "type": "boolean"
+        },
+        "performance_result": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Performance Result"
+        },
+        "regression_result": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Regression Result"
+        },
+        "root_cause_classification": {
+          "anyOf": [
+            {
+              "enum": [
+                "implementation_defect",
+                "design_ambiguity",
+                "testspec_weakness",
+                "environment_issue"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Root Cause Classification"
+        },
+        "summary": {
+          "title": "Summary",
+          "type": "string"
+        },
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "created_at",
+        "updated_at",
+        "task_id",
+        "passed",
+        "summary"
+      ],
+      "title": "ValidationReport",
+      "type": "object"
+    }
+  }
+}

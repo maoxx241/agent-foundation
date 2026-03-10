@@ -13,6 +13,12 @@ def make_client(tmp_path):
     return TestClient(app, headers=AGENT_HEADERS)
 
 
+def test_artifact_api_health_and_ready(tmp_path):
+    client = make_client(tmp_path)
+    assert client.get("/healthz").json() == {"status": "ok"}
+    assert client.get("/readyz").json() == {"status": "ready"}
+
+
 def test_artifact_api_happy_path_to_written_back(tmp_path):
     client = make_client(tmp_path)
     task_id = "task-happy"

@@ -6,7 +6,7 @@ from typing import Any
 
 from apps.artifact_api.main import create_app as create_artifact_app
 from apps.thin_kb_api.main import create_app as create_kb_app
-from packages.core.events import LedgerEvent, ObjectAuditReport, TaskAuditReport
+from packages.core.events import KBEvent, LedgerEvent, ObjectAuditReport, ReleaseEvent, ReplayRunEvent, TaskAuditReport, TaskEvent
 from packages.core.schemas import (
     ADR,
     Case,
@@ -15,20 +15,25 @@ from packages.core.schemas import (
     DesignReview,
     DesignSpec,
     EvidencePack,
+    EvalThresholds,
     ExperiencePacket,
     ExtractBundle,
     ExtractedChunk,
     HybridSearchHit,
     HybridSearchResponse,
     ImplReview,
+    MetricThreshold,
     Procedure,
     RefinedWriteback,
+    ReleaseCheckReport,
+    ReplayRunReport,
     SearchHit,
     SearchResponse,
     SelfTestReport,
     SourceRecord,
     TaskBrief,
     TaskStateRecord,
+    ThresholdFailure,
     TestSpec,
     ValidationReport,
 )
@@ -100,8 +105,22 @@ def build_jsonschema_contracts() -> dict[str, dict[str, Any]]:
             "event_models.v1",
             [
                 LedgerEvent,
+                TaskEvent,
+                KBEvent,
+                ReplayRunEvent,
+                ReleaseEvent,
                 TaskAuditReport,
                 ObjectAuditReport,
+            ],
+        ),
+        "eval_runtime_models.v1.json": _bundle(
+            "eval_runtime_models.v1",
+            [
+                MetricThreshold,
+                ThresholdFailure,
+                EvalThresholds,
+                ReplayRunReport,
+                ReleaseCheckReport,
             ],
         ),
     }

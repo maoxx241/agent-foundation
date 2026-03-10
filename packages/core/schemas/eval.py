@@ -132,6 +132,32 @@ class WorkflowMetrics(BaseSchema):
     regression_escape_rate: float = 0.0
 
 
+class MetricThreshold(BaseSchema):
+    metric: str
+    op: Literal[">=", "<=", "=="] = ">="
+    value: float
+
+
+class ThresholdFailure(BaseSchema):
+    check: str
+    metric: str
+    op: str
+    expected: float
+    actual: float = 0.0
+    message: Optional[str] = None
+
+
+class EvalThresholds(BaseSchema):
+    profile: str = "smoke"
+    min_gold_cases: int = 0
+    min_replay_cases: int = 0
+    require_baseline: bool = False
+    retrieval: List[MetricThreshold] = Field(default_factory=list)
+    workflow: List[MetricThreshold] = Field(default_factory=list)
+    max_regressed_case_count: int = 0
+    max_new_critical_failures: int = 0
+
+
 class EvalRun(BaseSchema):
     run_id: str
     generated_at: str
@@ -139,6 +165,15 @@ class EvalRun(BaseSchema):
     replay_results: List[ReplayCaseResult] = Field(default_factory=list)
     retrieval_metrics: RetrievalMetrics = Field(default_factory=RetrievalMetrics)
     workflow_metrics: WorkflowMetrics = Field(default_factory=WorkflowMetrics)
+    report_dir: Optional[str] = None
+
+
+class ReplayRunReport(BaseSchema):
+    run_id: str
+    generated_at: str
+    replay_results: List[ReplayCaseResult] = Field(default_factory=list)
+    workflow_metrics: WorkflowMetrics = Field(default_factory=WorkflowMetrics)
+    ok: bool = True
     report_dir: Optional[str] = None
 
 
@@ -175,4 +210,23 @@ class ComparisonReport(BaseSchema):
     metric_deltas: Dict[str, float] = Field(default_factory=dict)
     regressed_case_ids: List[str] = Field(default_factory=list)
     new_critical_failures: List[str] = Field(default_factory=list)
+    threshold_failures: List[ThresholdFailure] = Field(default_factory=list)
+    baseline_missing: bool = False
     overall_status: Literal["ok", "regression", "no_baseline"] = "ok"
+
+
+class ReleaseCheckReport(BaseSchema):
+    run_id: str
+    started_at: str
+    ended_at: str
+    profile: str = "smoke"
+    contract_drift: bool = False
+    replay_ok: bool = True
+    eval_ok: bool = True
+    replay_report_dir: Optional[str] = None
+    eval_report_dir: Optional[str] = None
+    comparison_report_path: Optional[str] = None
+    threshold_failures: List[ThresholdFailure] = Field(default_factory=list)
+    regressed_case_ids: List[str] = Field(default_factory=list)
+    new_critical_failures: List[str] = Field(default_factory=list)
+    overall_status: Literal["ok", "failed", "blocked"] = "ok"

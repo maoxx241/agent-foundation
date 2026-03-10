@@ -5,7 +5,7 @@ from typing import Optional
 
 from fastapi import Depends, FastAPI
 
-from packages.core.config import ensure_state_layout, ledgers_root, observability_root, tasks_root, validate_runtime_roots
+from packages.core.config import ensure_runtime_layout, ledgers_root, observability_root, tasks_root, validate_runtime_roots
 from packages.core.observability import Observability, install_observability
 from packages.core.security import default_service_auth, install_auth, require_agent_access, require_operator_access
 from packages.core.services.artifact_service import ArtifactService
@@ -38,7 +38,7 @@ def create_app(
     using_default_store = store is None
     if store is None:
         validate_runtime_roots()
-        ensure_state_layout()
+        ensure_runtime_layout()
         store = ArtifactStore(_default_tasks_root())
     if observability is None:
         root = _default_observability_root() if using_default_store else store.tasks_root.parent / "observability"
@@ -62,6 +62,10 @@ def create_app(
     @app.get("/healthz")
     def healthz() -> dict[str, str]:
         return {"status": "ok"}
+
+    @app.get("/readyz")
+    def readyz() -> dict[str, str]:
+        return {"status": "ready"}
 
     return app
 

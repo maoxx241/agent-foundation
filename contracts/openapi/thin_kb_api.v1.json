@@ -675,6 +675,28 @@
         "summary": "Deprecate Object"
       }
     },
+    "/readyz": {
+      "get": {
+        "operationId": "readyz_readyz_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Readyz Readyz Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Readyz"
+      }
+    },
     "/v1/kb/cases/search": {
       "post": {
         "operationId": "search_cases_v1_kb_cases_search_post",

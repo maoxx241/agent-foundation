@@ -23,7 +23,7 @@ from packages.core.storage.artifact_store import ArtifactStore
 from packages.core.storage.fs_utils import ensure_dir, utc_now
 from packages.core.storage.phase2_store import Phase2Store
 from packages.core.storage.thin_kb_store import ThinKBStore
-from tests.helpers import AGENT_HEADERS
+from tests.helpers import AGENT_HEADERS, OPERATOR_HEADERS
 from .metrics import compute_retrieval_metrics, compute_workflow_metrics
 from .reporting import new_run_id
 
@@ -99,26 +99,29 @@ class EvaluationRunner:
             self._seed_case(case, env["artifact_client"], env["kb_store"], env["phase2_store"])
             step_results: list[ReplayStepResult] = []
             for step in case.steps:
-                client = env["kb_client"] if "/v1/kb/" in step.path else env["artifact_client"]
+                client = _client_for_step(step.path, env)
                 response = client.request(
                     step.method,
                     step.path,
                     json=step.body,
                     headers={"x-run-id": run_id},
                 )
-                body_excerpt = response.text[:240]
+                body_excerpt = response.text[:2000]
                 state = None
                 promoted_count = 0
                 if response.headers.get("content-type", "").startswith("application/json"):
                     payload = response.json()
                     state = _extract_state(payload)
                     promoted_count = len(payload.get("object_ids", [])) if isinstance(payload, dict) else 0
+                contains_ok = all(snippet in body_excerpt for snippet in step.expect_contains)
+                state_ok = step.expect_state is None or state == step.expect_state
+                ok = response.status_code == step.expect_status and contains_ok and state_ok
                 step_results.append(
                     ReplayStepResult(
                         method=step.method,
                         path=step.path,
                         status_code=response.status_code,
-                        ok=response.status_code == step.expect_status,
+                        ok=ok,
                         target_state=(step.body or {}).get("target_state"),
                         state=state,
                         promoted_object_count=promoted_count,
@@ -133,9 +136,17 @@ class EvaluationRunner:
                 if not step_result.ok
                 for warning in [f"{step.method} {step.path} expected {step.expect_status} got {step_result.status_code}"]
             ]
+            promoted_total = sum(item.promoted_object_count for item in step_results)
+            if promoted_total < case.expected.promoted_object_min:
+                warnings.append(
+                    f"{case.case_id} expected promoted_object_min {case.expected.promoted_object_min} got {promoted_total}"
+                )
+            for expected_warning in case.expected.warnings:
+                if not any(expected_warning in warning for warning in warnings):
+                    warnings.append(f"missing expected warning: {expected_warning}")
             ok = all(item.ok for item in step_results) and all(
                 final_states.get(task_id) == state for task_id, state in case.expected.final_states.items()
-            )
+            ) and promoted_total >= case.expected.promoted_object_min
             return ReplayCaseResult(
                 case_id=case.case_id,
                 kind=case.kind,
@@ -147,7 +158,9 @@ class EvaluationRunner:
             )
         finally:
             env["artifact_client"].close()
+            env["artifact_operator_client"].close()
             env["kb_client"].close()
+            env["kb_operator_client"].close()
 
     def _make_environment(self, workspace_root: Path) -> dict[str, Any]:
         if workspace_root.exists():
@@ -164,13 +177,23 @@ class EvaluationRunner:
             create_artifact_app(artifact_store, Observability(observability_root / "artifact_api")),
             headers=AGENT_HEADERS,
         )
+        artifact_operator_client = TestClient(
+            create_artifact_app(artifact_store, Observability(observability_root / "artifact_api_operator")),
+            headers=OPERATOR_HEADERS,
+        )
         kb_client = TestClient(
             create_kb_app(kb_store, phase2_store, Observability(observability_root / "thin_kb_api")),
             headers=AGENT_HEADERS,
         )
+        kb_operator_client = TestClient(
+            create_kb_app(kb_store, phase2_store, Observability(observability_root / "thin_kb_api_operator")),
+            headers=OPERATOR_HEADERS,
+        )
         return {
             "artifact_client": artifact_client,
+            "artifact_operator_client": artifact_operator_client,
             "kb_client": kb_client,
+            "kb_operator_client": kb_operator_client,
             "artifact_store": artifact_store,
             "kb_store": kb_store,
             "phase2_store": phase2_store,
@@ -248,3 +271,13 @@ def _extract_state(payload: Any) -> str | None:
         if isinstance(state, dict):
             return state.get("state")
     return None
+
+
+def _client_for_step(path: str, env: dict[str, Any]) -> TestClient:
+    if path.startswith("/internal/v1/kb/") or path.startswith("/internal/v1/audit/object/"):
+        return env["kb_operator_client"]
+    if path.startswith("/internal/"):
+        return env["artifact_operator_client"]
+    if "/v1/kb/" in path:
+        return env["kb_client"]
+    return env["artifact_client"]

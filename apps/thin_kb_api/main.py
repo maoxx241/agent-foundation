@@ -6,7 +6,7 @@ from typing import Optional
 from fastapi import Depends, FastAPI
 
 from packages.core.config import (
-    ensure_state_layout,
+    ensure_runtime_layout,
     kb_db_path,
     kb_root,
     lancedb_indexes_root,
@@ -58,7 +58,7 @@ def create_app(
     using_default_store = store is None
     if store is None:
         validate_runtime_roots()
-        ensure_state_layout()
+        ensure_runtime_layout()
         kb_root, db_path = _default_kb_paths()
         store = ThinKBStore(kb_root=kb_root, db_path=db_path)
     if phase2_store is None:
@@ -100,6 +100,10 @@ def create_app(
     @app.get("/healthz")
     def healthz() -> dict[str, str]:
         return {"status": "ok"}
+
+    @app.get("/readyz")
+    def readyz() -> dict[str, str]:
+        return {"status": "ready"}
 
     return app
 

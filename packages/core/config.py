@@ -13,6 +13,10 @@ def state_root() -> Path:
     return _resolve(os.getenv("AGENT_FOUNDATION_STATE_ROOT"), _default_state_root())
 
 
+def workspace_root() -> Path:
+    return _resolve(os.getenv("AGENT_FOUNDATION_WORKSPACE_ROOT"), _default_workspace_root())
+
+
 def tasks_root() -> Path:
     return _resolve(os.getenv("AGENT_FOUNDATION_TASKS_ROOT"), state_root() / "tasks")
 
@@ -66,11 +70,15 @@ def reports_root() -> Path:
 
 
 def shadow_runs_root() -> Path:
-    return _resolve(os.getenv("AGENT_FOUNDATION_SHADOW_RUNS_ROOT"), state_root() / "replay" / "captured_runs")
+    return _resolve(os.getenv("AGENT_FOUNDATION_SHADOW_RUNS_ROOT"), replay_captured_runs_root())
 
 
 def replay_root() -> Path:
     return state_root() / "replay"
+
+
+def replay_captured_runs_root() -> Path:
+    return replay_root() / "captured_runs"
 
 
 def backups_root() -> Path:
@@ -105,6 +113,26 @@ def audit_ledgers_root() -> Path:
     return ledgers_root() / "audits"
 
 
+def replay_run_ledgers_root() -> Path:
+    return ledgers_root() / "replay_runs"
+
+
+def release_ledgers_root() -> Path:
+    return ledgers_root() / "releases"
+
+
+def worktrees_root() -> Path:
+    return workspace_root() / "worktrees"
+
+
+def sandboxes_root() -> Path:
+    return workspace_root() / "sandboxes"
+
+
+def agent_tmp_root() -> Path:
+    return workspace_root() / "agent_tmp"
+
+
 def agent_token() -> str:
     return os.getenv("AGENT_FOUNDATION_AGENT_TOKEN", "agent-token")
 
@@ -130,8 +158,11 @@ def ensure_state_layout() -> dict[str, Path]:
         "task_ledgers_root": task_ledgers_root(),
         "kb_ledgers_root": kb_ledgers_root(),
         "audit_ledgers_root": audit_ledgers_root(),
+        "replay_run_ledgers_root": replay_run_ledgers_root(),
+        "release_ledgers_root": release_ledgers_root(),
         "observability_root": observability_root(),
         "replay_root": replay_root(),
+        "replay_captured_runs_root": replay_captured_runs_root(),
         "shadow_runs_root": shadow_runs_root(),
         "backups_root": backups_root(),
     }
@@ -140,17 +171,56 @@ def ensure_state_layout() -> dict[str, Path]:
     return layout
 
 
+def ensure_workspace_layout() -> dict[str, Path]:
+    layout = {
+        "workspace_root": workspace_root(),
+        "worktrees_root": worktrees_root(),
+        "sandboxes_root": sandboxes_root(),
+        "agent_tmp_root": agent_tmp_root(),
+    }
+    for path in layout.values():
+        path.mkdir(parents=True, exist_ok=True)
+    return layout
+
+
+def ensure_runtime_layout() -> dict[str, dict[str, Path]]:
+    return {
+        "state": ensure_state_layout(),
+        "workspace": ensure_workspace_layout(),
+    }
+
+
 def validate_runtime_roots() -> None:
     repo = repo_root()
-    configured = [tasks_root(), kb_root(), observability_root()]
-    if any(path.is_relative_to(repo) for path in configured):
-        explicit = {
-            "AGENT_FOUNDATION_TASKS_ROOT": os.getenv("AGENT_FOUNDATION_TASKS_ROOT"),
-            "AGENT_FOUNDATION_KB_ROOT": os.getenv("AGENT_FOUNDATION_KB_ROOT"),
-            "AGENT_FOUNDATION_OBSERVABILITY_ROOT": os.getenv("AGENT_FOUNDATION_OBSERVABILITY_ROOT"),
-        }
-        if any(value for value in explicit.values()):
-            raise RuntimeError("Repo-local runtime overrides are not allowed once STATE_ROOT mode is enabled")
+    configured = {
+        "AGENT_FOUNDATION_STATE_ROOT": state_root(),
+        "AGENT_FOUNDATION_TASKS_ROOT": tasks_root(),
+        "AGENT_FOUNDATION_KB_ROOT": kb_root(),
+        "AGENT_FOUNDATION_OBSERVABILITY_ROOT": observability_root(),
+        "AGENT_FOUNDATION_WORKSPACE_ROOT": workspace_root(),
+    }
+    derived = {
+        "indexes_root": indexes_root(),
+        "ledgers_root": ledgers_root(),
+        "replay_root": replay_root(),
+        "backups_root": backups_root(),
+        "shadow_runs_root": shadow_runs_root(),
+    }
+    repo_local = [name for name, path in {**configured, **derived}.items() if path.is_relative_to(repo)]
+    if repo_local:
+        joined = ", ".join(sorted(repo_local))
+        raise RuntimeError(f"Runtime roots must live outside the repo root; repo-local paths detected for: {joined}")
+
+
+def legacy_repo_runtime_paths() -> list[Path]:
+    repo = repo_root()
+    return [
+        repo / "tasks",
+        repo / "kb",
+        repo / "observability",
+        repo / "reports",
+        repo / "shadow_runs",
+    ]
 
 
 def _resolve(value: str | None, default: Path) -> Path:
@@ -171,3 +241,17 @@ def _default_state_root() -> Path:
     if xdg_state_home:
         return Path(xdg_state_home) / "agent-foundation"
     return Path.home() / ".local" / "state" / "agent-foundation"
+
+
+def _default_workspace_root() -> Path:
+    if sys.platform == "darwin":
+        return Path.home() / "Library" / "Application Support" / "agent-foundation-work"
+    if os.name == "nt":
+        local_appdata = os.getenv("LOCALAPPDATA")
+        if local_appdata:
+            return Path(local_appdata) / "agent-foundation-work"
+        return Path.home() / "AppData" / "Local" / "agent-foundation-work"
+    xdg_state_home = os.getenv("XDG_STATE_HOME")
+    if xdg_state_home:
+        return Path(xdg_state_home) / "agent-foundation-work"
+    return Path.home() / ".local" / "state" / "agent-foundation-work"

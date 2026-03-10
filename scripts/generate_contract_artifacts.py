@@ -18,7 +18,7 @@ def main() -> None:
     contracts = contracts_root()
 
     generated_openapi = generated / "openapi"
-    generated_schemas = generated / "schemas"
+    generated_schemas = generated / "jsonschema"
     frozen_openapi = contracts / "openapi"
     frozen_schemas = contracts / "jsonschema"
     for path in (generated_openapi, generated_schemas, frozen_openapi, frozen_schemas):

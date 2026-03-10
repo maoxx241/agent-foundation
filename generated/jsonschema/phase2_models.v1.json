@@ -1,0 +1,650 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "bundle": "phase2_models.v1",
+  "models": {
+    "ExtractBundle": {
+      "$defs": {
+        "ExtractedChunk": {
+          "additionalProperties": false,
+          "properties": {
+            "chunk_id": {
+              "title": "Chunk Id",
+              "type": "string"
+            },
+            "chunk_type": {
+              "enum": [
+                "section",
+                "function",
+                "class",
+                "module",
+                "paragraph",
+                "snippet"
+              ],
+              "title": "Chunk Type",
+              "type": "string"
+            },
+            "content": {
+              "title": "Content",
+              "type": "string"
+            },
+            "end_line": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "End Line"
+            },
+            "language": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Language"
+            },
+            "metadata": {
+              "additionalProperties": true,
+              "title": "Metadata",
+              "type": "object"
+            },
+            "source_id": {
+              "title": "Source Id",
+              "type": "string"
+            },
+            "start_line": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Start Line"
+            },
+            "tags": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Tags",
+              "type": "array"
+            },
+            "title": {
+              "title": "Title",
+              "type": "string"
+            }
+          },
+          "required": [
+            "chunk_id",
+            "source_id",
+            "chunk_type",
+            "title",
+            "content"
+          ],
+          "title": "ExtractedChunk",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "chunks": {
+          "items": {
+            "$ref": "#/$defs/ExtractedChunk"
+          },
+          "title": "Chunks",
+          "type": "array"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "language": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Language"
+        },
+        "parser": {
+          "title": "Parser",
+          "type": "string"
+        },
+        "source_id": {
+          "title": "Source Id",
+          "type": "string"
+        },
+        "source_type": {
+          "enum": [
+            "document",
+            "code"
+          ],
+          "title": "Source Type",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "created_at",
+        "updated_at",
+        "source_id",
+        "source_type",
+        "title",
+        "parser"
+      ],
+      "title": "ExtractBundle",
+      "type": "object"
+    },
+    "ExtractedChunk": {
+      "additionalProperties": false,
+      "properties": {
+        "chunk_id": {
+          "title": "Chunk Id",
+          "type": "string"
+        },
+        "chunk_type": {
+          "enum": [
+            "section",
+            "function",
+            "class",
+            "module",
+            "paragraph",
+            "snippet"
+          ],
+          "title": "Chunk Type",
+          "type": "string"
+        },
+        "content": {
+          "title": "Content",
+          "type": "string"
+        },
+        "end_line": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Line"
+        },
+        "language": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Language"
+        },
+        "metadata": {
+          "additionalProperties": true,
+          "title": "Metadata",
+          "type": "object"
+        },
+        "source_id": {
+          "title": "Source Id",
+          "type": "string"
+        },
+        "start_line": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start Line"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "chunk_id",
+        "source_id",
+        "chunk_type",
+        "title",
+        "content"
+      ],
+      "title": "ExtractedChunk",
+      "type": "object"
+    },
+    "HybridSearchHit": {
+      "additionalProperties": false,
+      "properties": {
+        "hit_type": {
+          "enum": [
+            "canonical",
+            "extract"
+          ],
+          "title": "Hit Type",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "metadata": {
+          "additionalProperties": true,
+          "title": "Metadata",
+          "type": "object"
+        },
+        "object_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Object Type"
+        },
+        "score": {
+          "minimum": 0.0,
+          "title": "Score",
+          "type": "number"
+        },
+        "snippet": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Snippet"
+        },
+        "source_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Id"
+        },
+        "summary": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Summary"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "hit_type",
+        "title",
+        "score"
+      ],
+      "title": "HybridSearchHit",
+      "type": "object"
+    },
+    "HybridSearchResponse": {
+      "$defs": {
+        "HybridSearchHit": {
+          "additionalProperties": false,
+          "properties": {
+            "hit_type": {
+              "enum": [
+                "canonical",
+                "extract"
+              ],
+              "title": "Hit Type",
+              "type": "string"
+            },
+            "id": {
+              "title": "Id",
+              "type": "string"
+            },
+            "metadata": {
+              "additionalProperties": true,
+              "title": "Metadata",
+              "type": "object"
+            },
+            "object_type": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Object Type"
+            },
+            "score": {
+              "minimum": 0.0,
+              "title": "Score",
+              "type": "number"
+            },
+            "snippet": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Snippet"
+            },
+            "source_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Source Id"
+            },
+            "summary": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Summary"
+            },
+            "tags": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Tags",
+              "type": "array"
+            },
+            "title": {
+              "title": "Title",
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "hit_type",
+            "title",
+            "score"
+          ],
+          "title": "HybridSearchHit",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "hits": {
+          "items": {
+            "$ref": "#/$defs/HybridSearchHit"
+          },
+          "title": "Hits",
+          "type": "array"
+        },
+        "query": {
+          "title": "Query",
+          "type": "string"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "query"
+      ],
+      "title": "HybridSearchResponse",
+      "type": "object"
+    },
+    "RefinedWriteback": {
+      "additionalProperties": false,
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "object_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Object Ids",
+          "type": "array"
+        },
+        "object_status": {
+          "anyOf": [
+            {
+              "const": "candidate",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Object Status"
+        },
+        "objects": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Objects",
+          "type": "array"
+        },
+        "persist_target": {
+          "anyOf": [
+            {
+              "const": "candidate",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Persist Target"
+        },
+        "persisted": {
+          "title": "Persisted",
+          "type": "boolean"
+        },
+        "summary": {
+          "title": "Summary",
+          "type": "string"
+        },
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "created_at",
+        "updated_at",
+        "task_id",
+        "persisted",
+        "summary"
+      ],
+      "title": "RefinedWriteback",
+      "type": "object"
+    },
+    "SourceRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "checksum": {
+          "title": "Checksum",
+          "type": "string"
+        },
+        "content": {
+          "title": "Content",
+          "type": "string"
+        },
+        "content_type": {
+          "title": "Content Type",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "language": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Language"
+        },
+        "metadata": {
+          "additionalProperties": true,
+          "title": "Metadata",
+          "type": "object"
+        },
+        "parser": {
+          "title": "Parser",
+          "type": "string"
+        },
+        "path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Path"
+        },
+        "source_id": {
+          "title": "Source Id",
+          "type": "string"
+        },
+        "source_type": {
+          "enum": [
+            "document",
+            "code"
+          ],
+          "title": "Source Type",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "created_at",
+        "updated_at",
+        "source_id",
+        "source_type",
+        "title",
+        "content_type",
+        "parser",
+        "checksum",
+        "content"
+      ],
+      "title": "SourceRecord",
+      "type": "object"
+    }
+  }
+}

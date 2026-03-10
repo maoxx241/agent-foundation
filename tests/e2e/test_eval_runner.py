@@ -20,6 +20,9 @@ def test_eval_runner_writes_reports_from_frozen_corpora(tmp_path):
     assert payload["run_id"] == "eval-runner-test"
     assert payload["retrieval_results"]
     assert payload["replay_results"]
+    replay_payload = json.loads((tmp_path / "reports" / "replay" / "eval-runner-test" / "run.json").read_text(encoding="utf-8"))
+    assert replay_payload["run_id"] == "eval-runner-test"
+    assert replay_payload["ok"] is True
 
 
 def test_compare_runs_flags_regressed_case_ids(tmp_path):
