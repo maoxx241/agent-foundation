@@ -3,13 +3,14 @@ from __future__ import annotations
 from fastapi.testclient import TestClient
 
 from apps.artifact_api.main import create_app
-from libs.storage.artifact_store import ArtifactStore
+from packages.core.storage.artifact_store import ArtifactStore
+from tests.helpers import AGENT_HEADERS
 
 
 def make_client(tmp_path):
     store = ArtifactStore(tmp_path / "tasks")
     app = create_app(store)
-    return TestClient(app)
+    return TestClient(app, headers=AGENT_HEADERS)
 
 
 def test_artifact_api_happy_path_to_written_back(tmp_path):
@@ -216,4 +217,3 @@ def test_finalize_is_blocked_before_validated(tmp_path):
     response = client.post(f"/v1/tasks/{task_id}/experience/finalize")
     assert response.status_code == 409
     assert "before VALIDATED" in response.json()["detail"]
-

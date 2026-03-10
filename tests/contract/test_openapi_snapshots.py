@@ -5,9 +5,9 @@ from pathlib import Path
 
 from apps.artifact_api.main import create_app as create_artifact_app
 from apps.thin_kb_api.main import create_app as create_kb_app
-from libs.storage.artifact_store import ArtifactStore
-from libs.storage.phase2_store import Phase2Store
-from libs.storage.thin_kb_store import ThinKBStore
+from packages.core.storage.artifact_store import ArtifactStore
+from packages.core.storage.phase2_store import Phase2Store
+from packages.core.storage.thin_kb_store import ThinKBStore
 
 
 def _snapshot_root() -> Path:

@@ -6,10 +6,10 @@ import tarfile
 
 import pytest
 
-from libs.storage.artifact_store import ArtifactStore
-from libs.storage.fs_utils import ValidationError
-from libs.storage.recovery import backup_workspace, detect_manifest_mismatch, restore_workspace
-from libs.storage.thin_kb_store import ThinKBStore
+from packages.core.storage.artifact_store import ArtifactStore
+from packages.core.storage.fs_utils import ValidationError
+from packages.core.storage.recovery import backup_workspace, detect_manifest_mismatch, restore_workspace
+from packages.core.storage.thin_kb_store import ThinKBStore
 
 
 def test_r01_backup_archive_contains_manifest_and_sections(tmp_path):

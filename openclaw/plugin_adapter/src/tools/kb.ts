@@ -50,7 +50,7 @@ export function registerKbTools(tools: ToolRegistry, config: PluginConfig): void
       return requestJson(config.thinKbApiBaseUrl, specificRoute, {
         method: "POST",
         body: JSON.stringify(body),
-      }, config.requestTimeoutMs, ctx);
+      }, config.requestTimeoutMs, ctx, config.serviceToken);
     }
   });
 
@@ -71,7 +71,8 @@ export function registerKbTools(tools: ToolRegistry, config: PluginConfig): void
         `/v1/kb/object/${input.id}`,
         { method: "GET" },
         config.requestTimeoutMs,
-        ctx
+        ctx,
+        config.serviceToken
       );
     }
   });
@@ -93,7 +94,8 @@ export function registerKbTools(tools: ToolRegistry, config: PluginConfig): void
         `/v1/kb/related/${input.id}`,
         { method: "GET" },
         config.requestTimeoutMs,
-        ctx
+        ctx,
+        config.serviceToken
       );
     }
   });
@@ -126,7 +128,7 @@ export function registerKbTools(tools: ToolRegistry, config: PluginConfig): void
           domain_tags: input.domain_tags ?? [],
           metadata: input.metadata ?? {}
         }),
-      }, config.requestTimeoutMs, ctx);
+      }, config.requestTimeoutMs, ctx, config.serviceToken);
     }
   });
 
@@ -156,7 +158,7 @@ export function registerKbTools(tools: ToolRegistry, config: PluginConfig): void
           domain_tags: input.domain_tags ?? [],
           metadata: input.metadata ?? {}
         }),
-      }, config.requestTimeoutMs, ctx);
+      }, config.requestTimeoutMs, ctx, config.serviceToken);
     }
   });
 
@@ -199,7 +201,7 @@ export function registerKbTools(tools: ToolRegistry, config: PluginConfig): void
           limit: input.limit ?? 10,
           env_filters: input.env_filters ?? {}
         }),
-      }, config.requestTimeoutMs, ctx);
+      }, config.requestTimeoutMs, ctx, config.serviceToken);
     }
   });
 
@@ -223,7 +225,7 @@ export function registerKbTools(tools: ToolRegistry, config: PluginConfig): void
           experience_packet: input.experience_packet,
           persist: input.persist ?? false
         }),
-      }, config.requestTimeoutMs, ctx);
+      }, config.requestTimeoutMs, ctx, config.serviceToken);
     }
   });
 }

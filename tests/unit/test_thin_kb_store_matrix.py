@@ -3,8 +3,8 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError as PydanticValidationError
 
-from libs.storage.fs_utils import NotFoundError
-from libs.storage.thin_kb_store import ThinKBStore
+from packages.core.storage.fs_utils import NotFoundError
+from packages.core.storage.thin_kb_store import ThinKBStore
 
 
 def make_store(tmp_path):

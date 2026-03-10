@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import pytest
 
-from libs.schemas import TaskState
-from libs.storage.artifact_store import ArtifactStore
-from libs.storage.fs_utils import ConflictError
+from packages.core.schemas import TaskState
+from packages.core.storage.artifact_store import ArtifactStore
+from packages.core.storage.fs_utils import ConflictError
 
 
 def _create_task(store: ArtifactStore) -> str:

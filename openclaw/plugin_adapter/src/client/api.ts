@@ -7,7 +7,8 @@ export async function requestJson<T>(
   path: string,
   init: RequestInit,
   timeoutMs: number,
-  ctx?: unknown
+  ctx?: unknown,
+  serviceToken?: string
 ): Promise<ToolResult<T>> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
@@ -19,6 +20,9 @@ export async function requestJson<T>(
   const runId = extractRunId(ctx);
   if (runId && !headers.has("x-run-id")) {
     headers.set("x-run-id", runId);
+  }
+  if (serviceToken && !headers.has("x-service-token")) {
+    headers.set("x-service-token", serviceToken);
   }
   const traceId = headers.get("x-trace-id") ?? undefined;
 
@@ -75,6 +79,7 @@ export function resolveConfig(config?: Partial<PluginConfig>): PluginConfig {
     artifactApiBaseUrl: config?.artifactApiBaseUrl ?? process.env.ARTIFACT_API_BASE_URL ?? "http://127.0.0.1:8081",
     thinKbApiBaseUrl: config?.thinKbApiBaseUrl ?? process.env.THIN_KB_API_BASE_URL ?? "http://127.0.0.1:8082",
     requestTimeoutMs: config?.requestTimeoutMs ?? Number(process.env.REQUEST_TIMEOUT_MS ?? "5000"),
+    serviceToken: config?.serviceToken ?? process.env.AGENT_FOUNDATION_AGENT_TOKEN ?? "agent-token",
   };
 }
 

@@ -59,6 +59,7 @@ test("plugin registers artifact and kb tools and forwards calls", async () => {
   assert.match(calls.at(-1).url, /http:\/\/kb\.local\/v1\/kb\/claims\/search/);
   assert.match(String(calls.at(-1).init.body), /"version":"1.0.0"/);
   assert.ok(new Headers(calls.at(-1).init.headers).get("x-trace-id"));
+  assert.equal(new Headers(calls.at(-1).init.headers).get("x-service-token"), "agent-token");
   assert.ok(kbResult.trace_id);
 
   const hybridResult = await registry.get("kb_search_hybrid").run({ run_id: "run-shadow-1" }, {

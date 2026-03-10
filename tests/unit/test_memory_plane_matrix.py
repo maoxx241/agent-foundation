@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import time
 
-from libs.integrations.memory_plane import MemoryBackendUnavailable, MemoryPlane
+from packages.core.integrations.memory_plane import MemoryBackendUnavailable, MemoryPlane
 
 
 class HealthyBackend:

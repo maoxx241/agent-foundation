@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import json
 
-from libs.eval import EvaluationRunner, compare_runs, load_gold_cases, load_replay_cases, write_eval_run
-from libs.schemas import EvalRun, ReplayCaseResult, RetrievalCaseResult
+from packages.core.eval import EvaluationRunner, compare_runs, load_gold_cases, load_replay_cases, write_eval_run
+from packages.core.schemas import EvalRun, ReplayCaseResult, RetrievalCaseResult
 
 
 def test_eval_runner_writes_reports_from_frozen_corpora(tmp_path):

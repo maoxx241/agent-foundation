@@ -3,8 +3,8 @@ from __future__ import annotations
 from fastapi.testclient import TestClient
 
 from apps.thin_kb_api.main import create_app
-from libs.storage.thin_kb_store import ThinKBStore
-from tests.helpers import make_kb_client
+from packages.core.storage.thin_kb_store import ThinKBStore
+from tests.helpers import AGENT_HEADERS, make_kb_client
 
 
 def test_k08_search_with_object_type_filter_returns_only_claims(tmp_path):
@@ -62,7 +62,7 @@ def test_k09_case_env_filter_mismatch_suppresses_result(tmp_path):
             "env": {"repo": "agent-foundation", "branch": "main"},
         }
     )
-    client = TestClient(create_app(store))
+    client = TestClient(create_app(store), headers=AGENT_HEADERS)
     response = client.post(
         "/v1/kb/cases/search",
         json={"query": "benchmark", "env_filters": {"repo": "missing"}, "limit": 10},

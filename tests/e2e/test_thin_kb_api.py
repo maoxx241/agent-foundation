@@ -3,7 +3,8 @@ from __future__ import annotations
 from fastapi.testclient import TestClient
 
 from apps.thin_kb_api.main import create_app
-from libs.storage.thin_kb_store import ThinKBStore
+from packages.core.storage.thin_kb_store import ThinKBStore
+from tests.helpers import AGENT_HEADERS
 
 
 def make_client(tmp_path):
@@ -31,7 +32,7 @@ def make_client(tmp_path):
         }
     )
     app = create_app(store)
-    return TestClient(app)
+    return TestClient(app, headers=AGENT_HEADERS)
 
 
 def test_thin_kb_api_search_get_and_related(tmp_path):

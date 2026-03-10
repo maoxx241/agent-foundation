@@ -4,7 +4,7 @@ from typing import Any, Optional
 
 from pydantic import AliasChoices, Field
 
-from libs.schemas.common import BaseSchema, TaskState
+from packages.core.schemas.common import BaseSchema, TaskState
 
 
 class CreateTaskRequest(BaseSchema):
@@ -30,3 +30,8 @@ class UpdateTaskStateRequest(BaseSchema):
 class PutArtifactRequest(BaseSchema):
     format: str
     content: Any
+
+
+class ArchiveTaskRequest(BaseSchema):
+    changed_by: str
+    reason: Optional[str] = None

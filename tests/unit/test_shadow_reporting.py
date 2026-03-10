@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import json
 
-from libs.eval.shadow import append_intervention, summarize_shadow_run, write_shadow_checklist, write_shadow_summary
-from libs.schemas import EvalRun, InterventionRecord, ReplayCaseResult, ReplayStepResult, RetrievalMetrics, WorkflowMetrics
+from packages.core.eval.shadow import append_intervention, summarize_shadow_run, write_shadow_checklist, write_shadow_summary
+from packages.core.schemas import EvalRun, InterventionRecord, ReplayCaseResult, ReplayStepResult, RetrievalMetrics, WorkflowMetrics
 
 
 def test_shadow_summary_uses_logged_interventions(tmp_path):

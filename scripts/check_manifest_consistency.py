@@ -4,12 +4,13 @@ import argparse
 import json
 from pathlib import Path
 
-from libs.storage.recovery import detect_manifest_mismatch
+from packages.core.config import kb_root
+from packages.core.storage.recovery import detect_manifest_mismatch
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Check for Thin KB canonical/manifest mismatch")
-    parser.add_argument("--kb-root", type=Path, default=Path("kb"))
+    parser.add_argument("--kb-root", type=Path, default=kb_root())
     parser.add_argument("--db-path", type=Path)
     args = parser.parse_args()
 

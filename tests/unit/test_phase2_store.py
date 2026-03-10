@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from libs.storage.phase2_store import Phase2Store
-from libs.storage.thin_kb_store import ThinKBStore
+from packages.core.storage.phase2_store import Phase2Store
+from packages.core.storage.thin_kb_store import ThinKBStore
 
 
 def test_phase2_store_ingests_and_hybrid_searches(tmp_path):

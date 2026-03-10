@@ -1,15 +1,14 @@
 # agent-foundation
 
-Phase 1 plus the minimal runnable Phase 2 enrichment described in [`design-pack`](./design-pack)
-and [`design-pack-v5`](./design-pack-v5), plus the Wave 3 / Wave 4 evaluation and shadow-mode
-foundation from [`design-pack-v6`](./design-pack-v6).
+Phase 1 plus the minimal runnable Phase 2 enrichment described in the earlier design packs, now
+normalized toward the `design-pack-v7` structure-first plan.
 
 It provides:
 
 - `artifact_api`: file-first task artifact service with validated state transitions
 - `thin_kb_api`: canonical Thin KB service backed by JSON files and SQLite FTS5
 - `thin_kb_api` Phase 2 enrichment: document/code ingestion, hybrid retrieval, writeback refinement
-- `libs/eval` + `libs/pipeline`: frozen corpora runner, report generation, and Dagster asset orchestration
+- `packages/core/eval` + `packages/core/pipeline`: frozen corpora runner, report generation, and Dagster asset orchestration
 - `openclaw/plugin_adapter`: thin TypeScript adapter for OpenClaw tools
 - `tests`: unit and end-to-end coverage for the happy path and blocked transition path
 
@@ -19,13 +18,21 @@ It provides:
 apps/
   artifact_api/
   thin_kb_api/
-libs/
-  schemas/
-  storage/
+packages/
+  core/
+    schemas/
+    storage/
+    eval/
+    pipeline/
+contracts/
+  openapi/
+evals/
+  datasets/
+  corpora/
+generated/
+  reports/
 openclaw/
   plugin_adapter/
-tasks/
-kb/
 tests/
 ```
 
@@ -53,23 +60,29 @@ npm test
 
 ## Environment
 
-- `AGENT_FOUNDATION_TASKS_ROOT`: overrides the task artifact root. Defaults to `./tasks`.
-- `AGENT_FOUNDATION_KB_ROOT`: overrides the KB root. Defaults to `./kb`.
-- `AGENT_FOUNDATION_KB_DB`: overrides the KB SQLite manifest path. Defaults to `./kb/manifest.sqlite3`.
+- `AGENT_FOUNDATION_STATE_ROOT`: base runtime root. Defaults outside the source repo using the host OS state directory.
+- `AGENT_FOUNDATION_TASKS_ROOT`: overrides the task artifact root. Defaults to `${STATE_ROOT}/tasks`.
+- `AGENT_FOUNDATION_KB_ROOT`: overrides the KB root. Defaults to `${STATE_ROOT}/kb`.
+- `AGENT_FOUNDATION_KB_DB`: overrides the KB SQLite manifest path. Defaults to `${KB_ROOT}/manifest.sqlite3`.
 - `ARTIFACT_API_BASE_URL`: default base URL used by the plugin. Defaults to `http://127.0.0.1:8081`.
 - `THIN_KB_API_BASE_URL`: default base URL used by the plugin. Defaults to `http://127.0.0.1:8082`.
 - `REQUEST_TIMEOUT_MS`: plugin HTTP timeout in milliseconds. Defaults to `5000`.
-- `AGENT_FOUNDATION_OBSERVABILITY_ROOT`: root for JSONL events and metrics. Defaults to `./observability`.
+- `AGENT_FOUNDATION_OBSERVABILITY_ROOT`: root for JSONL events and metrics. Defaults to `${STATE_ROOT}/observability`.
+- `AGENT_FOUNDATION_EVALS_ROOT`: overrides the frozen corpora root. Defaults to `./evals`.
+- `AGENT_FOUNDATION_REPORTS_ROOT`: overrides generated reports. Defaults to `./generated/reports`.
 - `OPENCLAW_RUN_ID`: optional run identifier forwarded by the plugin as `x-run-id`.
+
+See [`docs/MIGRATION_V7_REPO.md`](./docs/MIGRATION_V7_REPO.md) for the full path migration table.
 
 ## Contract Freeze
 
 - Public API compatibility policy: [`docs/API_COMPATIBILITY.md`](./docs/API_COMPATIBILITY.md)
 - Dependency notes: [`docs/DEPENDENCIES.md`](./docs/DEPENDENCIES.md)
-- Dagster ADR: [`docs/ADR-007-dagster-eval-orchestration.md`](./docs/ADR-007-dagster-eval-orchestration.md)
+- Dagster ADR: [`docs/adr/ADR-007-dagster-eval-orchestration.md`](./docs/adr/ADR-007-dagster-eval-orchestration.md)
 - Frozen OpenAPI snapshots:
   - `contracts/openapi/artifact_api.v1.json`
   - `contracts/openapi/thin_kb_api.v1.json`
+- Normative file index: [`NORMATIVE_FILES.md`](./NORMATIVE_FILES.md)
 
 ## Phase 2 Endpoints
 
@@ -92,10 +105,10 @@ uv pip install '.[phase3]'
 
 ## Evaluation And Shadow Mode
 
-- Frozen corpora live under `eval/gold/`, `eval/replay/`, and `eval/shadow/`
-- Eval reports are written under `reports/eval/<run_id>/`
-- Shadow outputs are written under `reports/shadow/<run_id>/`
-- Dagster definitions live in `libs/pipeline/dagster_defs.py`
+- Frozen corpora live under `evals/datasets/gold/`, `evals/corpora/replay/`, and `evals/corpora/shadow/`
+- Eval reports are written under `generated/reports/eval/<run_id>/`
+- Shadow outputs are written under `generated/reports/shadow/<run_id>/`
+- Dagster definitions live in `packages/core/pipeline/dagster_defs.py`
 
 Run the frozen eval corpora directly:
 
@@ -126,7 +139,7 @@ Compare two stored eval runs:
 Rebuild the manifest and FTS index from the JSON source of truth:
 
 ```bash
-python -m libs.storage.thin_kb_store
+python -m packages.core.storage.thin_kb_store
 ```
 
 ## Recovery And Metrics
@@ -140,4 +153,4 @@ python -m libs.storage.thin_kb_store
 - Restore archive:
   - `.venv/bin/python scripts/restore_workspace.py --archive backups/agent-foundation.tar.gz --tasks-root restored/tasks --kb-root restored/kb`
 - Metrics report:
-  - `.venv/bin/python scripts/generate_metrics_report.py --observability-root observability/artifact_api`
+  - `.venv/bin/python scripts/generate_metrics_report.py`

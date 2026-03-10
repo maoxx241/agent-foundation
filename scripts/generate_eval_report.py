@@ -3,8 +3,8 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from libs.eval import EvaluationRunner, load_gold_cases, load_replay_cases, write_eval_run
-from libs.eval.reporting import new_run_id
+from packages.core.eval import EvaluationRunner, load_gold_cases, load_replay_cases, write_eval_run
+from packages.core.eval.reporting import new_run_id
 
 
 def main() -> int:

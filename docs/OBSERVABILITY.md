@@ -4,10 +4,10 @@
 
 Observability data is written locally under:
 
-- `observability/artifact_api/events.jsonl`
-- `observability/artifact_api/metrics.jsonl`
-- `observability/thin_kb_api/events.jsonl`
-- `observability/thin_kb_api/metrics.jsonl`
+- `${STATE_ROOT}/observability/artifact_api/events.jsonl`
+- `${STATE_ROOT}/observability/artifact_api/metrics.jsonl`
+- `${STATE_ROOT}/observability/thin_kb_api/events.jsonl`
+- `${STATE_ROOT}/observability/thin_kb_api/metrics.jsonl`
 
 Override root with:
 
@@ -38,7 +38,7 @@ Structured events currently include:
 Generate a local report:
 
 ```bash
-.venv/bin/python scripts/generate_metrics_report.py --observability-root observability/artifact_api
+.venv/bin/python scripts/generate_metrics_report.py
 ```
 
 Current report fields include:

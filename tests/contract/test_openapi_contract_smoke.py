@@ -5,8 +5,9 @@ from schemathesis import openapi
 
 from apps.artifact_api.main import create_app as create_artifact_app
 from apps.thin_kb_api.main import create_app as create_kb_app
-from libs.storage.artifact_store import ArtifactStore
-from libs.storage.thin_kb_store import ThinKBStore
+from packages.core.storage.artifact_store import ArtifactStore
+from packages.core.storage.thin_kb_store import ThinKBStore
+from tests.helpers import AGENT_HEADERS
 
 pytestmark = [
     pytest.mark.filterwarnings("ignore:The `.example()` method is good for exploring strategies*:hypothesis.errors.NonInteractiveExampleWarning"),
@@ -25,13 +26,13 @@ def test_artifact_openapi_schemathesis_smoke(tmp_path):
         "title": "contract-title",
         "goal": "contract-goal",
     }
-    response = case.call(base_url="http://testserver")
+    response = case.call(base_url="http://testserver", headers=AGENT_HEADERS)
     case.validate_response(response)
     assert response.status_code < 500
 
     invalid_case = operation.as_strategy().example()
     invalid_case.body = {"task_id": "only-one-field"}
-    invalid_response = invalid_case.call(base_url="http://testserver")
+    invalid_response = invalid_case.call(base_url="http://testserver", headers=AGENT_HEADERS)
     assert invalid_response.status_code == 422
 
 
@@ -41,11 +42,11 @@ def test_thin_kb_openapi_schemathesis_smoke(tmp_path):
     operation = schema.find_operation_by_label("POST /v1/kb/search")
     case = operation.as_strategy().example()
     case.body = {"query": "contract"}
-    response = case.call(base_url="http://testserver")
+    response = case.call(base_url="http://testserver", headers=AGENT_HEADERS)
     case.validate_response(response)
     assert response.status_code < 500
 
     invalid_case = operation.as_strategy().example()
     invalid_case.body = {"limit": -1, "query": []}
-    invalid_response = invalid_case.call(base_url="http://testserver")
+    invalid_response = invalid_case.call(base_url="http://testserver", headers=AGENT_HEADERS)
     assert invalid_response.status_code == 422

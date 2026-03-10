@@ -88,7 +88,7 @@ def test_rollback_requires_target_stage_artifacts(tmp_path):
     create_task(client, task_id)
     reach_written_back(client, task_id, full=True)
 
-    changelog_path = tmp_path / "tasks" / task_id / "70_release" / "changelog.md"
+    changelog_path = tmp_path / "tasks" / "active" / task_id / "70_release" / "changelog.md"
     changelog_path.unlink()
 
     response = patch_state(client, task_id, "RELEASED", "release")

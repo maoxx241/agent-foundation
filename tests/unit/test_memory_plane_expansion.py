@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from libs.integrations.memory_plane import MemoryBackendError, MemoryPlane
+from packages.core.integrations.memory_plane import MemoryBackendError, MemoryPlane
 
 
 class RecordingBackend:

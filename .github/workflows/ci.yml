@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Run unit, contract, replay, and retrieval suites
+        env:
+          AGENT_FOUNDATION_AGENT_TOKEN: agent-token
+          AGENT_FOUNDATION_OPERATOR_TOKEN: operator-token
+        run: .venv/bin/pytest -q || pytest -q
+
+      - name: Regenerate contracts and verify no drift
+        env:
+          AGENT_FOUNDATION_AGENT_TOKEN: agent-token
+          AGENT_FOUNDATION_OPERATOR_TOKEN: operator-token
+        run: |
+          python scripts/generate_contract_artifacts.py
+          git diff --exit-code contracts generated
+
+  plugin:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: openclaw/plugin_adapter
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: openclaw/plugin_adapter/package-lock.json
+
+      - name: Install plugin dependencies
+        run: npm ci
+
+      - name: Run plugin adapter tests
+        run: npm test

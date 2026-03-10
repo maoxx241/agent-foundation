@@ -3,8 +3,9 @@ from __future__ import annotations
 from fastapi.testclient import TestClient
 
 from apps.artifact_api.main import create_app
-from libs.storage.artifact_store import ArtifactStore
+from packages.core.storage.artifact_store import ArtifactStore
 from tests.helpers import (
+    AGENT_HEADERS,
     create_task,
     get_state,
     patch_state,
@@ -18,7 +19,7 @@ from tests.helpers import (
 
 
 def test_w04_impl_review_approved_task_can_roll_back_to_implemented(tmp_path):
-    client = TestClient(create_app(ArtifactStore(tmp_path / "tasks")))
+    client = TestClient(create_app(ArtifactStore(tmp_path / "tasks")), headers=AGENT_HEADERS)
     create_task(client, "task-impl-rollback")
     reach_impl_approved(client, "task-impl-rollback", full=True)
 
@@ -28,7 +29,7 @@ def test_w04_impl_review_approved_task_can_roll_back_to_implemented(tmp_path):
 
 
 def test_w05_validated_task_can_roll_back_to_implemented_for_bug_fix(tmp_path):
-    client = TestClient(create_app(ArtifactStore(tmp_path / "tasks")))
+    client = TestClient(create_app(ArtifactStore(tmp_path / "tasks")), headers=AGENT_HEADERS)
     create_task(client, "task-validation-bug")
     reach_validated(client, "task-validation-bug", full=True)
 
@@ -38,7 +39,7 @@ def test_w05_validated_task_can_roll_back_to_implemented_for_bug_fix(tmp_path):
 
 
 def test_w06_validated_task_can_roll_back_to_testspec_for_spec_issue(tmp_path):
-    client = TestClient(create_app(ArtifactStore(tmp_path / "tasks")))
+    client = TestClient(create_app(ArtifactStore(tmp_path / "tasks")), headers=AGENT_HEADERS)
     create_task(client, "task-validation-spec")
     reach_validated(client, "task-validation-spec", full=True)
 
@@ -49,7 +50,7 @@ def test_w06_validated_task_can_roll_back_to_testspec_for_spec_issue(tmp_path):
 
 def test_w09_restart_recovery_keeps_task_state_consistent(tmp_path):
     tasks_root = tmp_path / "tasks"
-    client = TestClient(create_app(ArtifactStore(tasks_root)))
+    client = TestClient(create_app(ArtifactStore(tasks_root)), headers=AGENT_HEADERS)
     create_task(client, "task-restart")
     reach_design_approved(client, "task-restart", full=True)
     put_json(client, "task-restart", "30_test", "test-spec.json", {"strategy_summary": "restart-safe"})
@@ -57,7 +58,7 @@ def test_w09_restart_recovery_keeps_task_state_consistent(tmp_path):
     response = patch_state(client, "task-restart", "TESTSPEC_FROZEN", "qa")
     assert response.status_code == 200
 
-    restarted = TestClient(create_app(ArtifactStore(tasks_root)))
+    restarted = TestClient(create_app(ArtifactStore(tasks_root)), headers=AGENT_HEADERS)
     assert get_state(restarted, "task-restart") == "TESTSPEC_FROZEN"
     put_text(restarted, "task-restart", "40_dev", "patch.diff", "diff --git a/a.py b/a.py")
     put_json(restarted, "task-restart", "40_dev", "changed-files.json", ["a.py"])
@@ -67,7 +68,7 @@ def test_w09_restart_recovery_keeps_task_state_consistent(tmp_path):
 
 
 def test_w10_written_back_task_can_roll_back_to_released_and_forward_again(tmp_path):
-    client = TestClient(create_app(ArtifactStore(tmp_path / "tasks")))
+    client = TestClient(create_app(ArtifactStore(tmp_path / "tasks")), headers=AGENT_HEADERS)
     create_task(client, "task-partial-rollback")
     reach_written_back(client, "task-partial-rollback", full=True)
 

@@ -3,9 +3,9 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from libs.eval.shadow import append_intervention
-from libs.schemas import InterventionRecord
-from libs.storage.fs_utils import utc_now
+from packages.core.eval.shadow import append_intervention
+from packages.core.schemas import InterventionRecord
+from packages.core.storage.fs_utils import utc_now
 
 
 def main() -> int:

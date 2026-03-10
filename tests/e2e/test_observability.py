@@ -4,15 +4,16 @@ from fastapi.testclient import TestClient
 
 from apps.artifact_api.main import create_app as create_artifact_app
 from apps.thin_kb_api.main import create_app as create_kb_app
-from libs.observability import Observability, build_metrics_report, load_jsonl
-from libs.storage.artifact_store import ArtifactStore
-from libs.storage.phase2_store import Phase2Store
-from libs.storage.thin_kb_store import ThinKBStore
+from packages.core.observability import Observability, build_metrics_report, load_jsonl
+from packages.core.storage.artifact_store import ArtifactStore
+from packages.core.storage.phase2_store import Phase2Store
+from packages.core.storage.thin_kb_store import ThinKBStore
+from tests.helpers import AGENT_HEADERS
 
 
 def test_artifact_api_emits_trace_and_task_logs(tmp_path):
     observability = Observability(tmp_path / "observability" / "artifact_api")
-    client = TestClient(create_artifact_app(ArtifactStore(tmp_path / "tasks"), observability))
+    client = TestClient(create_artifact_app(ArtifactStore(tmp_path / "tasks"), observability), headers=AGENT_HEADERS)
 
     response = client.post(
         "/v1/tasks",
@@ -46,7 +47,7 @@ def test_thin_kb_api_generates_trace_and_metrics(tmp_path):
         }
     )
     phase2 = Phase2Store(kb_root=kb_root, db_path=store.db_path, tasks_root=tmp_path / "tasks", canonical_store=store)
-    client = TestClient(create_kb_app(store, phase2, observability))
+    client = TestClient(create_kb_app(store, phase2, observability), headers=AGENT_HEADERS)
 
     response = client.post("/v1/kb/search", json={"query": "metrics"})
     assert response.status_code == 200, response.text

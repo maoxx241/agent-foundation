@@ -4,15 +4,15 @@ from fastapi.testclient import TestClient
 
 from apps.artifact_api.main import create_app as create_artifact_app
 from apps.thin_kb_api.main import create_app as create_kb_app
-from libs.storage.artifact_store import ArtifactStore
-from libs.storage.phase2_store import Phase2Store
-from libs.storage.thin_kb_store import ThinKBStore
-from tests.helpers import create_task, put_json
+from packages.core.storage.artifact_store import ArtifactStore
+from packages.core.storage.phase2_store import Phase2Store
+from packages.core.storage.thin_kb_store import ThinKBStore
+from tests.helpers import AGENT_HEADERS, create_task, put_json
 
 
 def make_clients(tmp_path) -> tuple[TestClient, TestClient]:
     tasks_root = tmp_path / "tasks"
-    artifact_client = TestClient(create_artifact_app(ArtifactStore(tasks_root)))
+    artifact_client = TestClient(create_artifact_app(ArtifactStore(tasks_root)), headers=AGENT_HEADERS)
 
     kb_root = tmp_path / "kb"
     kb_store = ThinKBStore(kb_root, kb_root / "manifest.sqlite3")
@@ -22,7 +22,7 @@ def make_clients(tmp_path) -> tuple[TestClient, TestClient]:
         tasks_root=tasks_root,
         canonical_store=kb_store,
     )
-    kb_client = TestClient(create_kb_app(kb_store, phase2_store))
+    kb_client = TestClient(create_kb_app(kb_store, phase2_store), headers=AGENT_HEADERS)
     return artifact_client, kb_client
 
 

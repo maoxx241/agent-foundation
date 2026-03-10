@@ -4,7 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
-from libs.storage.recovery import restore_workspace
+from packages.core.storage.recovery import restore_workspace
 
 
 def main() -> None:

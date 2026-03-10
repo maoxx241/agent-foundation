@@ -4,13 +4,16 @@ from fastapi.testclient import TestClient
 
 from apps.artifact_api.main import create_app as create_artifact_app
 from apps.thin_kb_api.main import create_app as create_kb_app
-from libs.storage.artifact_store import ArtifactStore
-from libs.storage.thin_kb_store import ThinKBStore
+from packages.core.storage.artifact_store import ArtifactStore
+from packages.core.storage.thin_kb_store import ThinKBStore
+
+AGENT_HEADERS = {"x-service-token": "agent-token"}
+OPERATOR_HEADERS = {"x-service-token": "operator-token"}
 
 
 def make_artifact_client(tmp_path) -> TestClient:
     store = ArtifactStore(tmp_path / "tasks")
-    return TestClient(create_artifact_app(store))
+    return TestClient(create_artifact_app(store), headers=AGENT_HEADERS)
 
 
 def create_task(client: TestClient, task_id: str) -> None:
@@ -232,5 +235,4 @@ def make_kb_client(tmp_path) -> TestClient:
             "domain_tags": ["legacy"],
         }
     )
-    return TestClient(create_kb_app(store))
-
+    return TestClient(create_kb_app(store), headers=AGENT_HEADERS)

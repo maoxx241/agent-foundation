@@ -13,6 +13,7 @@ export interface PluginConfig {
   artifactApiBaseUrl: string;
   thinKbApiBaseUrl: string;
   requestTimeoutMs: number;
+  serviceToken: string;
 }
 
 export interface OpenClawPlugin {

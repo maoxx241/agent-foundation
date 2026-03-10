@@ -2,23 +2,27 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Request
 
-from libs.observability import record_event, record_metric
-from libs.storage.artifact_store import ArtifactStore
-from libs.storage.fs_utils import ConflictError, NotFoundError, ValidationError
+from packages.core.observability import record_event, record_metric
+from packages.core.storage.fs_utils import ConflictError, NotFoundError, ValidationError
 from .models import CreateTaskRequest, UpdateTaskStateRequest
 
 router = APIRouter()
 
 
-def get_store(request: Request) -> ArtifactStore:
-    return request.app.state.artifact_store
+def get_service(request: Request):
+    return request.app.state.artifact_service
 
 
 @router.post("/v1/tasks")
 def create_task(payload: CreateTaskRequest, request: Request) -> dict:
-    store = get_store(request)
+    service = get_service(request)
     try:
-        result = store.create_task(payload.model_dump(mode="json"))
+        result = service.create_task(
+            payload.model_dump(mode="json"),
+            actor=payload.requester or "artifact_api",
+            trace_id=request.headers.get("x-trace-id"),
+            run_id=request.headers.get("x-run-id"),
+        )
         record_event(request, "task_created", task_id=payload.task_id, project_id=payload.project_id)
         record_metric(request, "task_created_total", 1, task_id=payload.task_id)
         return result
@@ -32,23 +36,24 @@ def create_task(payload: CreateTaskRequest, request: Request) -> dict:
 
 @router.get("/v1/tasks/{task_id}")
 def get_task(task_id: str, request: Request) -> dict:
-    store = get_store(request)
     try:
-        return store.get_task(task_id)
+        return get_service(request).get_task(task_id)
     except NotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
 @router.patch("/v1/tasks/{task_id}/state")
 def update_task_state(task_id: str, payload: UpdateTaskStateRequest, request: Request) -> dict:
-    store = get_store(request)
+    service = get_service(request)
     try:
-        previous = store.get_state(task_id)["state"]
-        result = store.update_state(
+        previous = service.store.get_state(task_id)["state"]
+        result = service.update_state(
             task_id=task_id,
             target_state=payload.target_state,
             changed_by=payload.changed_by,
             reason=payload.reason,
+            trace_id=request.headers.get("x-trace-id"),
+            run_id=request.headers.get("x-run-id"),
         )
         record_event(
             request,
@@ -81,8 +86,7 @@ def update_task_state(task_id: str, payload: UpdateTaskStateRequest, request: Re
 
 @router.get("/v1/tasks/{task_id}/bundle")
 def get_task_bundle(task_id: str, request: Request) -> dict:
-    store = get_store(request)
     try:
-        return store.bundle_task(task_id)
+        return get_service(request).bundle_task(task_id)
     except NotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc

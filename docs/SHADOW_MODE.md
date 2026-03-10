@@ -2,8 +2,8 @@
 
 ## Storage
 
-- Isolated workspaces: `shadow_runs/<run_id>/`
-- Shadow reports: `reports/shadow/<run_id>/`
+- Isolated workspaces: `${STATE_ROOT}/replay/captured_runs/<run_id>/`
+- Shadow reports: `generated/reports/shadow/<run_id>/`
 
 ## Safety defaults
 

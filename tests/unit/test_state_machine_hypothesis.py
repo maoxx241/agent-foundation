@@ -7,9 +7,9 @@ from pathlib import Path
 import pytest
 from hypothesis import given, strategies as st
 
-from libs.schemas import ArtifactStage, TaskState
-from libs.storage.fs_utils import ConflictError
-from libs.storage.state_machine import NEXT_STATE, ROLLBACKS, validate_transition
+from packages.core.schemas import ArtifactStage, TaskState
+from packages.core.storage.fs_utils import ConflictError
+from packages.core.storage.state_machine import NEXT_STATE, ROLLBACKS, validate_transition
 
 
 def _seed_full_task_tree(task_root: Path) -> None:

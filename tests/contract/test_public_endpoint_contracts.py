@@ -6,13 +6,14 @@ from fastapi.testclient import TestClient
 
 from apps.artifact_api.main import create_app as create_artifact_app
 from apps.thin_kb_api.main import create_app as create_kb_app
-from libs.storage.artifact_store import ArtifactStore
-from libs.storage.phase2_store import Phase2Store
-from libs.storage.thin_kb_store import ThinKBStore
+from packages.core.storage.artifact_store import ArtifactStore
+from packages.core.storage.phase2_store import Phase2Store
+from packages.core.storage.thin_kb_store import ThinKBStore
+from tests.helpers import AGENT_HEADERS
 
 
 def make_artifact_client(tmp_path) -> TestClient:
-    return TestClient(create_artifact_app(ArtifactStore(tmp_path / "tasks")))
+    return TestClient(create_artifact_app(ArtifactStore(tmp_path / "tasks")), headers=AGENT_HEADERS)
 
 
 def make_kb_client(tmp_path) -> TestClient:
@@ -68,7 +69,7 @@ def make_kb_client(tmp_path) -> TestClient:
         }
     )
     phase2 = Phase2Store(kb_root=kb_root, db_path=store.db_path, tasks_root=tmp_path / "tasks", canonical_store=store)
-    return TestClient(create_kb_app(store, phase2))
+    return TestClient(create_kb_app(store, phase2), headers=AGENT_HEADERS)
 
 
 def test_artifact_public_endpoints_roundtrip_contract(tmp_path):

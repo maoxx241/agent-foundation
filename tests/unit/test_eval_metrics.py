@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from libs.eval.metrics import compare_metric_maps, compute_retrieval_metrics, compute_workflow_metrics
-from libs.schemas import ReplayCaseResult, ReplayStepResult, RetrievalCaseResult
+from packages.core.eval.metrics import compare_metric_maps, compute_retrieval_metrics, compute_workflow_metrics
+from packages.core.schemas import ReplayCaseResult, ReplayStepResult, RetrievalCaseResult
 
 
 def test_retrieval_metrics_capture_hits_false_positives_and_versions():

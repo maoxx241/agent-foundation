@@ -4,9 +4,9 @@ import importlib.util
 
 import pytest
 
-from libs.storage.fs_utils import ValidationError
-from libs.storage.phase2_store import Phase2Store
-from libs.storage.thin_kb_store import ThinKBStore
+from packages.core.storage.fs_utils import ValidationError
+from packages.core.storage.phase2_store import Phase2Store
+from packages.core.storage.thin_kb_store import ThinKBStore
 
 HAS_DOCLING = importlib.util.find_spec("docling") is not None
 HAS_LANCEDB = importlib.util.find_spec("lancedb") is not None

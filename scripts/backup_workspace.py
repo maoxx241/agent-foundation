@@ -4,14 +4,15 @@ import argparse
 import json
 from pathlib import Path
 
-from libs.storage.recovery import backup_workspace
+from packages.core.config import kb_root, observability_root, tasks_root
+from packages.core.storage.recovery import backup_workspace
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Create a backup archive for tasks/, kb/, and observability/")
-    parser.add_argument("--tasks-root", type=Path, default=Path("tasks"))
-    parser.add_argument("--kb-root", type=Path, default=Path("kb"))
-    parser.add_argument("--observability-root", type=Path, default=Path("observability"))
+    parser.add_argument("--tasks-root", type=Path, default=tasks_root())
+    parser.add_argument("--kb-root", type=Path, default=kb_root())
+    parser.add_argument("--observability-root", type=Path, default=observability_root())
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
 

@@ -4,12 +4,13 @@ import argparse
 import json
 from pathlib import Path
 
-from libs.observability import build_metrics_report
+from packages.core.config import observability_root
+from packages.core.observability import build_metrics_report
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Aggregate observability events and metrics into one report")
-    parser.add_argument("--observability-root", type=Path, default=Path("observability"))
+    parser.add_argument("--observability-root", type=Path, default=observability_root())
     args = parser.parse_args()
 
     report = build_metrics_report(args.observability_root)

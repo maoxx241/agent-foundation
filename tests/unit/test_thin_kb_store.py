@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from libs.storage.thin_kb_store import ThinKBStore
+from packages.core.storage.thin_kb_store import ThinKBStore
 
 
 def test_upsert_search_and_related(tmp_path):

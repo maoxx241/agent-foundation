@@ -10,9 +10,9 @@ Create a backup archive for the local workspace:
 
 This captures:
 
-- `tasks/`
-- `kb/`
-- `observability/` when present
+- `${STATE_ROOT}/tasks`
+- `${STATE_ROOT}/kb`
+- `${STATE_ROOT}/observability` when present
 
 Required backup content:
 
@@ -46,7 +46,7 @@ Restore behavior:
 Check manifest vs canonical files:
 
 ```bash
-.venv/bin/python scripts/check_manifest_consistency.py --kb-root kb
+.venv/bin/python scripts/check_manifest_consistency.py
 ```
 
 ## Restore Drill

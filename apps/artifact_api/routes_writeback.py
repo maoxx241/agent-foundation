@@ -2,22 +2,26 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Request
 
-from libs.observability import record_event, record_metric
-from libs.storage.artifact_store import ArtifactStore
-from libs.storage.fs_utils import ConflictError, NotFoundError
+from packages.core.observability import record_event, record_metric
+from packages.core.storage.fs_utils import ConflictError, NotFoundError
 
 router = APIRouter()
 
 
-def get_store(request: Request) -> ArtifactStore:
-    return request.app.state.artifact_store
+def get_service(request: Request):
+    return request.app.state.artifact_service
 
 
 @router.post("/v1/tasks/{task_id}/experience/finalize")
 def finalize_experience(task_id: str, request: Request) -> dict:
-    store = get_store(request)
+    service = get_service(request)
     try:
-        result = store.finalize_experience(task_id=task_id, finalized_by="artifact_api")
+        result = service.finalize_experience(
+            task_id=task_id,
+            finalized_by="artifact_api",
+            trace_id=request.headers.get("x-trace-id"),
+            run_id=request.headers.get("x-run-id"),
+        )
         record_event(request, "writeback_finalized", task_id=task_id, state=result["state"])
         record_metric(request, "writeback_finalize_total", 1, task_id=task_id)
         return result

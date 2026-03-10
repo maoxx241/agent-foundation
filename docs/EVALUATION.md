@@ -2,12 +2,13 @@
 
 ## Frozen corpora
 
-- Retrieval gold sets: `eval/gold/*.jsonl`
-- Replay smoke corpus: `eval/replay/*.jsonl`
+- Retrieval gold sets: `evals/datasets/gold/*.jsonl`
+- Replay smoke corpus: `evals/corpora/replay/*.jsonl`
+- Shadow manifests: `evals/corpora/shadow/*.json`
 
 ## Outputs
 
-- Raw and aggregate eval outputs: `reports/eval/<run_id>/`
+- Raw and aggregate eval outputs: `generated/reports/eval/<run_id>/`
 - Main artifacts:
   - `run.json`
   - `retrieval-results.json`

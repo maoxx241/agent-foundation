@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from libs.eval import load_gold_cases, load_replay_cases, load_shadow_manifest
+from packages.core.eval import load_gold_cases, load_replay_cases, load_shadow_manifest
 
 
 def test_frozen_eval_corpora_load_from_repo():
     gold = load_gold_cases()
     replay = load_replay_cases()
-    manifest = load_shadow_manifest(Path("eval/shadow/pilot_manifest.json"))
+    manifest = load_shadow_manifest(Path("evals/corpora/shadow/pilot_manifest.json"))
 
     assert len(gold) >= 5
     assert any(case.allow_abstain for case in gold)

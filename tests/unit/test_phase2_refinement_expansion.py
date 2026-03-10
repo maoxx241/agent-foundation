@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import pytest
 
-from libs.storage.fs_utils import NotFoundError
-from libs.storage.phase2_store import Phase2Store
-from libs.storage.thin_kb_store import ThinKBStore
+from packages.core.storage.fs_utils import NotFoundError
+from packages.core.storage.phase2_store import Phase2Store
+from packages.core.storage.thin_kb_store import ThinKBStore
 
 
 def make_store(tmp_path) -> tuple[Phase2Store, ThinKBStore]:

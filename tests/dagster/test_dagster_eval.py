@@ -5,7 +5,7 @@ from pathlib import Path
 
 from dagster import materialize
 
-from libs.pipeline.dagster_defs import (
+from packages.core.pipeline.dagster_defs import (
     ALL_ASSET_CHECKS,
     ALL_ASSETS,
     build_definitions,
@@ -19,26 +19,26 @@ from libs.pipeline.dagster_defs import (
     validate_replay_corpus_payload,
     workflow_metrics,
 )
-from libs.eval import load_gold_cases, load_replay_cases
+from packages.core.eval import load_gold_cases, load_replay_cases
 
 
 def test_dagster_materializes_reports(tmp_path, monkeypatch):
     repo_root = _copy_eval_root(tmp_path)
     monkeypatch.setenv("AGENT_FOUNDATION_REPO_ROOT", str(repo_root))
-    monkeypatch.setenv("AGENT_FOUNDATION_EVAL_ROOT", str(repo_root / "eval"))
-    monkeypatch.setenv("AGENT_FOUNDATION_REPORTS_ROOT", str(repo_root / "reports"))
+    monkeypatch.setenv("AGENT_FOUNDATION_EVALS_ROOT", str(repo_root / "evals"))
+    monkeypatch.setenv("AGENT_FOUNDATION_REPORTS_ROOT", str(repo_root / "generated" / "reports"))
     monkeypatch.setenv("AGENT_FOUNDATION_RUN_ID", "dagster-test")
 
     result = materialize(ALL_ASSETS)
     assert result.success
-    assert (repo_root / "reports" / "eval" / "dagster-test" / "run.json").exists()
+    assert (repo_root / "generated" / "reports" / "eval" / "dagster-test" / "run.json").exists()
 
 
 def test_dagster_partial_subset_materializes_dependencies(tmp_path, monkeypatch):
     repo_root = _copy_eval_root(tmp_path)
     monkeypatch.setenv("AGENT_FOUNDATION_REPO_ROOT", str(repo_root))
-    monkeypatch.setenv("AGENT_FOUNDATION_EVAL_ROOT", str(repo_root / "eval"))
-    monkeypatch.setenv("AGENT_FOUNDATION_REPORTS_ROOT", str(repo_root / "reports"))
+    monkeypatch.setenv("AGENT_FOUNDATION_EVALS_ROOT", str(repo_root / "evals"))
+    monkeypatch.setenv("AGENT_FOUNDATION_REPORTS_ROOT", str(repo_root / "generated" / "reports"))
     monkeypatch.setenv("AGENT_FOUNDATION_RUN_ID", "dagster-partial")
 
     result = materialize([gold_datasets, replay_corpus, replay_results, retrieval_metrics, workflow_metrics, eval_report])
@@ -47,15 +47,15 @@ def test_dagster_partial_subset_materializes_dependencies(tmp_path, monkeypatch)
 
 def test_dagster_invalid_replay_input_blocks_downstream(tmp_path, monkeypatch):
     repo_root = _copy_eval_root(tmp_path)
-    (repo_root / "eval" / "replay" / "smoke.jsonl").write_text('{"case_id":"broken"}\n', encoding="utf-8")
+    (repo_root / "evals" / "corpora" / "replay" / "smoke.jsonl").write_text('{"case_id":"broken"}\n', encoding="utf-8")
     monkeypatch.setenv("AGENT_FOUNDATION_REPO_ROOT", str(repo_root))
-    monkeypatch.setenv("AGENT_FOUNDATION_EVAL_ROOT", str(repo_root / "eval"))
-    monkeypatch.setenv("AGENT_FOUNDATION_REPORTS_ROOT", str(repo_root / "reports"))
+    monkeypatch.setenv("AGENT_FOUNDATION_EVALS_ROOT", str(repo_root / "evals"))
+    monkeypatch.setenv("AGENT_FOUNDATION_REPORTS_ROOT", str(repo_root / "generated" / "reports"))
     monkeypatch.setenv("AGENT_FOUNDATION_RUN_ID", "dagster-bad")
 
     result = materialize(ALL_ASSETS, raise_on_error=False)
     assert result.success is False
-    assert not (repo_root / "reports" / "eval" / "dagster-bad" / "run.json").exists()
+    assert not (repo_root / "generated" / "reports" / "eval" / "dagster-bad" / "run.json").exists()
 
 
 def test_dagster_graph_checks_retry_and_schedule_metadata():
@@ -78,5 +78,5 @@ def test_dagster_graph_checks_retry_and_schedule_metadata():
 def _copy_eval_root(tmp_path: Path) -> Path:
     repo_root = Path(__file__).resolve().parents[2]
     target_root = tmp_path / "repo"
-    shutil.copytree(repo_root / "eval", target_root / "eval")
+    shutil.copytree(repo_root / "evals", target_root / "evals")
     return target_root

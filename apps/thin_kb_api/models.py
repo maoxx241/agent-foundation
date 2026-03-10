@@ -4,7 +4,7 @@ from typing import Optional
 
 from pydantic import Field
 
-from libs.schemas.common import BaseSchema, KBStatus, Scope
+from packages.core.schemas.common import BaseSchema, KBStatus, Scope
 
 
 class KBSearchRequest(BaseSchema):
@@ -53,3 +53,14 @@ class RefineWritebackRequest(BaseSchema):
     task_id: Optional[str] = None
     experience_packet: Optional[dict[str, object]] = None
     persist: bool = False
+
+
+class PromoteCandidateRequest(BaseSchema):
+    changed_by: str
+    reason: Optional[str] = None
+
+
+class DeprecateObjectRequest(BaseSchema):
+    changed_by: str
+    reason: str
+    superseded_by: Optional[str] = None

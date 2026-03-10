@@ -27,7 +27,7 @@ export function registerArtifactTools(tools: ToolRegistry, config: PluginConfig)
       return requestJson(config.artifactApiBaseUrl, "/v1/tasks", {
         method: "POST",
         body: JSON.stringify(input),
-      }, config.requestTimeoutMs, ctx);
+      }, config.requestTimeoutMs, ctx, config.serviceToken);
     }
   });
 
@@ -50,7 +50,8 @@ export function registerArtifactTools(tools: ToolRegistry, config: PluginConfig)
         `/v1/tasks/${input.task_id}/artifacts/${input.stage}/${input.name}`,
         { method: "GET" },
         config.requestTimeoutMs,
-        ctx
+        ctx,
+        config.serviceToken
       );
     }
   });
@@ -80,7 +81,8 @@ export function registerArtifactTools(tools: ToolRegistry, config: PluginConfig)
           body: JSON.stringify(body),
         },
         config.requestTimeoutMs,
-        ctx
+        ctx,
+        config.serviceToken
       );
     }
   });
@@ -102,7 +104,8 @@ export function registerArtifactTools(tools: ToolRegistry, config: PluginConfig)
         `/v1/tasks/${input.task_id}/artifacts`,
         { method: "GET" },
         config.requestTimeoutMs,
-        ctx
+        ctx,
+        config.serviceToken
       );
     }
   });
@@ -131,7 +134,8 @@ export function registerArtifactTools(tools: ToolRegistry, config: PluginConfig)
           body: JSON.stringify(body),
         },
         config.requestTimeoutMs,
-        ctx
+        ctx,
+        config.serviceToken
       );
     }
   });
@@ -153,7 +157,8 @@ export function registerArtifactTools(tools: ToolRegistry, config: PluginConfig)
         `/v1/tasks/${input.task_id}/experience/finalize`,
         { method: "POST" },
         config.requestTimeoutMs,
-        ctx
+        ctx,
+        config.serviceToken
       );
     }
   });
